@@ -1,0 +1,1200 @@
+{
+    "Basketball": {
+        "initial_text": "green player in the center between white players\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"green\", \"reason\": \"color is a stable property of the target's appearance\"},\n    {\"phrase\": \"player\", \"reason\": \"object category that remains consistent\"}\n  ]\n",
+        "target_words_phrases": [
+            "green",
+            "player"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Bolt": {
+        "initial_text": "yellow runner between the blue and red runners\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"yellow\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"runner\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "yellow",
+            "runner"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Boy": {
+        "initial_text": "face of the boy standing in the corridor\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"inherent physical feature of the target (boy)\"},\n    {\"phrase\": \"boy\", \"reason\": \"object category or identity\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "boy"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Car4": {
+        "initial_text": "car on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "CarDark": {
+        "initial_text": "car in front with two lights\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"car\", \"reason\": \"object category\"},\n    {\"phrase\": \"two lights\", \"reason\": \"inherent feature of the object, describing its physical structure\"}\n  ]\n",
+        "target_words_phrases": [
+            "car",
+            "two lights"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            4,
+            5
+        ]
+    },
+    "CarScale": {
+        "initial_text": "car on the far left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"car\", \"reason\": \"object category describing the physical essence of the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Coke": {
+        "initial_text": "cola held by a hand in the center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"cola\", \"reason\": \"object category, describing the inherent type of the target object\"}\n  ]\n",
+        "target_words_phrases": [
+            "cola"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Couple": {
+        "initial_text": "two people walking on the left side\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"people\", \"reason\": \"object category that defines the inherent nature of the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "people"
+        ],
+        "subject_extrack_mask_infor": [
+            1
+        ]
+    },
+    "Crossing": {
+        "initial_text": "people on the right side of the road\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"people\", \"reason\": \"object category, referring to humans\"}\n  ]\n",
+        "target_words_phrases": [
+            "people"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "David": {
+        "initial_text": "face of the man in yellow shirt\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"yellow shirt\", \"reason\": \"clothing color and type correspond to physical appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "yellow shirt"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            5,
+            6
+        ]
+    },
+    "David2": {
+        "initial_text": "face of the man in the center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"physical part of the object\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "David3": {
+        "initial_text": "man in yellow shirt walking on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"yellow shirt\", \"reason\": \"color and clothing attribute, which are stable physical properties\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "yellow shirt"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Deer": {
+        "initial_text": "head of the deer in the top center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"deer\", \"reason\": \"object category representing the animal\"},\n    {\"phrase\": \"head\", \"reason\": \"specific physical part of the object\"}\n  ]\n",
+        "target_words_phrases": [
+            "deer",
+            "head"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            0
+        ]
+    },
+    "Dog1": {
+        "initial_text": "toy dog held by a man in the middle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"toy\", \"reason\": \"type of object category (subcategory of dog)\"},\n    {\"phrase\": \"dog\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "toy",
+            "dog"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Doll": {
+        "initial_text": "blue and green doll held by a man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"blue\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"green\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"doll\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "blue",
+            "green",
+            "doll"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Dudek": {
+        "initial_text": "face of the man next to a computer\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"inherent part of the physical entity being described\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "FaceOcc1": {
+        "initial_text": "face of the woman\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"specific physical feature of the object (woman)\"},\n    {\"phrase\": \"woman\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "woman"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "FaceOcc2": {
+        "initial_text": "face of the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category describing the inherent identity of the person\"},\n    {\"phrase\": \"face\", \"reason\": \"a stable and inherent physical feature of the individual\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "face"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            0
+        ]
+    },
+    "Fish": {
+        "initial_text": "fish statue in the center next to a book\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"fish\", \"reason\": \"object category that describes the statue's physical appearance\"},\n    {\"phrase\": \"statue\", \"reason\": \"object category that defines its physical nature\"}\n  ]\n",
+        "target_words_phrases": [
+            "fish",
+            "statue"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "FleetFace": {
+        "initial_text": "face of the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            3
+        ]
+    },
+    "Football": {
+        "initial_text": "head of the player with a helmet in the center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"physical part of the object (human anatomy) and inherently stable\"},\n    {\"phrase\": \"player\", \"reason\": \"object category indicating the type of person\"},\n    {\"phrase\": \"helmet\", \"reason\": \"physical accessory worn by the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "player",
+            "helmet"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            6
+        ]
+    },
+    "Football1": {
+        "initial_text": "head of the player with a blue helmet in the middle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"inherent physical part of the player\"},\n    {\"phrase\": \"player\", \"reason\": \"object category\"},\n    {\"phrase\": \"blue\", \"reason\": \"color of the helmet, a physical property\"},\n    {\"phrase\": \"helmet\", \"reason\": \"object's physical accessory\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "player",
+            "blue",
+            "helmet"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            6,
+            7
+        ]
+    },
+    "Freeman1": {
+        "initial_text": "face of the man on right\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"inherent physical feature of the target\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Freeman3": {
+        "initial_text": "head of the man standing in the back\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"physical part of the target\"},\n    {\"phrase\": \"man\", \"reason\": \"object category, identifying the target as a human being\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Freeman4": {
+        "initial_text": "head of the man standing in the back on the left side\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"inherent part of the object\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Girl": {
+        "initial_text": "face of the gril\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"intrinsic component of the object\"},\n    {\"phrase\": \"girl\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "girl"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Ironman": {
+        "initial_text": "head of the man in red on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"red\", \"reason\": \"color attribute of clothing\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "red"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            5
+        ]
+    },
+    "Jogging1": {
+        "initial_text": "woman in dark pants next to a woman in white top\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"woman\", \"reason\": \"object category\"},\n    {\"phrase\": \"dark pants\", \"reason\": \"clothing color and type, a stable physical property\"}\n  ]\n",
+        "target_words_phrases": [
+            "woman",
+            "dark pants"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Jogging2": {
+        "initial_text": "woman in white on the right\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"woman\", \"reason\": \"object category\"},\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"}\n  ]\n",
+        "target_words_phrases": [
+            "woman",
+            "white"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Jumping": {
+        "initial_text": "face of the boy\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"physical feature of the object\"},\n    {\"phrase\": \"boy\", \"reason\": \"object category or identity\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "boy"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Lemming": {
+        "initial_text": "brown toy with large googly eyes on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"brown\", \"reason\": \"color attribute, which is a stable property\"},\n    {\"phrase\": \"toy\", \"reason\": \"object category, describing the essence of the object\"},\n    {\"phrase\": \"large googly eyes\", \"reason\": \"inherent physical accessories of the object\"}\n  ]\n",
+        "target_words_phrases": [
+            "brown",
+            "toy",
+            "large googly eyes"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            3,
+            4,
+            5
+        ]
+    },
+    "Liquor": {
+        "initial_text": "brown liquor bottle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"brown\", \"reason\": \"color attribute, a stable property of the object\"},\n    {\"phrase\": \"liquor bottle\", \"reason\": \"object category, which defines the type of item\"}\n  ]\n",
+        "target_words_phrases": [
+            "brown",
+            "liquor bottle"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            2
+        ]
+    },
+    "Matrix": {
+        "initial_text": "head of the man in black on left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"an inherent physical part of the described object (man)\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute of the man's clothing\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "man",
+            "black"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            5
+        ]
+    },
+    "Mhyang": {
+        "initial_text": "face of the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category, describing the person inherently\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            3
+        ]
+    },
+    "MotorRolling": {
+        "initial_text": "motorbike jumping in the air\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"motorbike\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "motorbike"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "MountainBike": {
+        "initial_text": "the bicycle on the ramp\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"bicycle\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "bicycle"
+        ],
+        "subject_extrack_mask_infor": [
+            1
+        ]
+    },
+    "Shaking": {
+        "initial_text": "head of the man in the middle wearing a hat\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"head\", \"reason\": \"stable part of the individual's anatomy\"},\n    {\"phrase\": \"man\", \"reason\": \"object category (target is a human male)\"},\n    {\"phrase\": \"hat\", \"reason\": \"physical accessory worn by the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "head",
+            "man",
+            "hat"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            9
+        ]
+    },
+    "Singer1": {
+        "initial_text": "girl in a white dress on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"girl\", \"reason\": \"object category that identifies the target as a person\"},\n    {\"phrase\": \"white\", \"reason\": \"color property of the dress\"},\n    {\"phrase\": \"dress\", \"reason\": \"clothing item that is a physical accessory\"}\n  ]\n",
+        "target_words_phrases": [
+            "girl",
+            "white",
+            "dress"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            4
+        ]
+    },
+    "Singer2": {
+        "initial_text": "man standing in the front\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Skating1": {
+        "initial_text": "the skater on the left side\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"skater\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "skater"
+        ],
+        "subject_extrack_mask_infor": [
+            1
+        ]
+    },
+    "Skiing": {
+        "initial_text": "skier jumping on the right\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"skier\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "skier"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Soccer": {
+        "initial_text": "face of the player holding the trophy in the middle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"an inherent physical component of a person\"},\n    {\"phrase\": \"player\", \"reason\": \"object category describing the target as a human participant\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "player"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Subway": {
+        "initial_text": "people in black on the top left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"people\", \"reason\": \"object category describing the general entity\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute of the clothing\"}\n  ]\n",
+        "target_words_phrases": [
+            "people",
+            "black"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Suv": {
+        "initial_text": "car in the middle between two cars\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Sylvester": {
+        "initial_text": "toy in the middle held by a man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"toy\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "toy"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Tiger1": {
+        "initial_text": "toy tiger above the plant\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"toy\", \"reason\": \"object type describes its essence as a non-living play object\"},\n    {\"phrase\": \"tiger\", \"reason\": \"object category describes the inherent design of the toy\"}\n  ]\n",
+        "target_words_phrases": [
+            "toy",
+            "tiger"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Tiger2": {
+        "initial_text": "toy tiger on the top left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"toy\", \"reason\": \"object type is a stable category\"},\n    {\"phrase\": \"tiger\", \"reason\": \"object category\"},\n    {\"phrase\": \"tiger\", \"reason\": \"describes the essence of the object's design and identity\"}\n  ]\n",
+        "target_words_phrases": [
+            "toy",
+            "tiger",
+            "tiger"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            1
+        ]
+    },
+    "Trellis": {
+        "initial_text": "face of the man with a glass\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"glass\", \"reason\": \"physical accessory\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "glass"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            6
+        ]
+    },
+    "Walking": {
+        "initial_text": "people in white shirt on the bottom right corner\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white shirt\", \"reason\": \"color and clothing type are stable physical attributes\"},\n    {\"phrase\": \"people\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "white shirt",
+            "people"
+        ],
+        "subject_extrack_mask_infor": [
+            2,
+            3,
+            0
+        ]
+    },
+    "Walking2": {
+        "initial_text": "woman in middle carrying a bag\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"woman\", \"reason\": \"object category, describing the target's inherent identity as a human female\"},\n    {\"phrase\": \"bag\", \"reason\": \"physical accessory, which is a stable property of the object being carried\"}\n  ]\n",
+        "target_words_phrases": [
+            "woman",
+            "bag"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            5
+        ]
+    },
+    "Woman": {
+        "initial_text": "woman in pink beside a car\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"woman\", \"reason\": \"object category describing the target\"},\n    {\"phrase\": \"pink\", \"reason\": \"color attribute describing the target's clothing or appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "woman",
+            "pink"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Biker": {
+        "initial_text": "head of the man on the bike\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category, describing the inherent subject\"},\n    {\"phrase\": \"head\", \"reason\": \"anatomical component of the intrinsic subject, man\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "head"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            0
+        ]
+    },
+    "Bird1": {
+        "initial_text": "trunk of the bird on the top right\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"trunk\", \"reason\": \"physical part of the bird\"},\n    {\"phrase\": \"bird\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "trunk",
+            "bird"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Bird2": {
+        "initial_text": "bird on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"bird\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "bird"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "BlurBody": {
+        "initial_text": "man in dark jacket and jeans\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"dark jacket\", \"reason\": \"physical clothing attribute that is part of the target's appearance\"},\n    {\"phrase\": \"jeans\", \"reason\": \"physical clothing attribute that is part of the target's appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "dark jacket",
+            "jeans"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3,
+            5
+        ]
+    },
+    "BlurCar1": {
+        "initial_text": "white car next to a big truck\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white\", \"reason\": \"color attribute\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "white",
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "BlurCar2": {
+        "initial_text": "white car in the middle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "white",
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "BlurCar3": {
+        "initial_text": "white car with red rear lights\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"},\n    {\"phrase\": \"red\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"rear lights\", \"reason\": \"physical part of the object\"}\n  ]\n",
+        "target_words_phrases": [
+            "white",
+            "car",
+            "red",
+            "rear lights"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            3,
+            4,
+            5
+        ]
+    },
+    "BlurCar4": {
+        "initial_text": "black car in the center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"black\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "black",
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "BlurFace": {
+        "initial_text": "face of the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"an inherent physical feature of the object (man)\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "BlurOwl": {
+        "initial_text": "dark brown owl on the wall\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"dark brown\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"owl\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "dark brown",
+            "owl"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            2
+        ]
+    },
+    "Board": {
+        "initial_text": "green circuit board\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"green\", \"reason\": \"color attribute, an inherent and stable property of the object\"},\n    {\"phrase\": \"circuit board\", \"reason\": \"object category, describing the physical essence of the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "green",
+            "circuit board"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            2
+        ]
+    },
+    "Bolt2": {
+        "initial_text": "runner in the middle with white shirt\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"runner\", \"reason\": \"object category, describing the entity as a person engaged in running activity\"},\n    {\"phrase\": \"white shirt\", \"reason\": \"color and clothing attribute, which is a stable physical property of the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "runner",
+            "white shirt"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            5,
+            6
+        ]
+    },
+    "Box": {
+        "initial_text": "dark box on the right with red and white text on it\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"dark\", \"reason\": \"describes the box's inherent color attribute\"},\n    {\"phrase\": \"box\", \"reason\": \"object category\"},\n    {\"phrase\": \"red and white text\", \"reason\": \"the presence of specific colored text is a stable physical property of the object\"}\n  ]\n",
+        "target_words_phrases": [
+            "dark",
+            "box",
+            "red and white text"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            6,
+            7,
+            8,
+            9
+        ]
+    },
+    "Car1": {
+        "initial_text": "white car on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "white",
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Car2": {
+        "initial_text": "white car on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "white",
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Car24": {
+        "initial_text": "car in the middle next to a white car\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"car\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "car"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Coupon": {
+        "initial_text": "coupon on the desk\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"coupon\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "coupon"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Crowds": {
+        "initial_text": "the rightmost pedestrian in white\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"pedestrian\", \"reason\": \"object category identifies the target as a human walking\"},\n    {\"phrase\": \"white\", \"reason\": \"color is a stable characteristic of the target's clothing\"}\n  ]\n",
+        "target_words_phrases": [
+            "pedestrian",
+            "white"
+        ],
+        "subject_extrack_mask_infor": [
+            2,
+            4
+        ]
+    },
+    "Dancer": {
+        "initial_text": "dancer in black dress\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"dancer\", \"reason\": \"object category, referring to the type of individual\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute of the dress, which is a stable property\"},\n    {\"phrase\": \"dress\", \"reason\": \"physical accessory worn by the dancer\"}\n  ]\n",
+        "target_words_phrases": [
+            "dancer",
+            "black",
+            "dress"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Dancer2": {
+        "initial_text": "dancer wearing white clothes in the middle\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"dancer\", \"reason\": \"object category, describes the person's role or essence\"},\n    {\"phrase\": \"white clothes\", \"reason\": \"color and attire, describes the inherent appearance of what the dancer is wearing\"}\n  ]\n",
+        "target_words_phrases": [
+            "dancer",
+            "white clothes"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Diving": {
+        "initial_text": "diver on the diving board\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"diver\", \"reason\": \"object category, describing the person engaged in diving\"},\n    {\"phrase\": \"diving board\", \"reason\": \"object category, describing the platform used for diving\"}\n  ]\n",
+        "target_words_phrases": [
+            "diver",
+            "diving board"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3,
+            4
+        ]
+    },
+    "Dog": {
+        "initial_text": "the black and white dog\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"black\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"dog\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "black",
+            "white",
+            "dog"
+        ],
+        "subject_extrack_mask_infor": [
+            1,
+            3,
+            4
+        ]
+    },
+    "DragonBaby": {
+        "initial_text": "face of the kid in yellow clothes\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"kid\", \"reason\": \"object category, indicating a young human\"},\n    {\"phrase\": \"yellow clothes\", \"reason\": \"color and physical outfit worn by the target, which is a stable property for identification\"}\n  ]\n",
+        "target_words_phrases": [
+            "kid",
+            "yellow clothes"
+        ],
+        "subject_extrack_mask_infor": [
+            3,
+            5,
+            6
+        ]
+    },
+    "Girl2": {
+        "initial_text": "girl in yellow shirt and purple pants\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"girl\", \"reason\": \"object category\"},\n    {\"phrase\": \"yellow\", \"reason\": \"color of the shirt, a stable property of the clothing\"},\n    {\"phrase\": \"shirt\", \"reason\": \"part of the subject's attire, a stable property\"},\n    {\"phrase\": \"purple\", \"reason\": \"color of the pants, a stable property of the clothing\"},\n    {\"phrase\": \"pants\", \"reason\": \"part of the subject's attire, a stable property\"}\n  ]\n",
+        "target_words_phrases": [
+            "girl",
+            "yellow",
+            "shirt",
+            "purple",
+            "pants"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3,
+            5,
+            6
+        ]
+    },
+    "Gym": {
+        "initial_text": "player performing gymnastics in the center\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"player\", \"reason\": \"object category as it defines the essence of the person involved in the scene\"}\n  ]\n",
+        "target_words_phrases": [
+            "player"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Human2": {
+        "initial_text": "the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            1
+        ]
+    },
+    "Human3": {
+        "initial_text": "man in the middle crossing the street\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Human4": {
+        "initial_text": "man in blue\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"blue\", \"reason\": \"color attribute of clothing or physical appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "blue"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Human5": {
+        "initial_text": "people on the right next to a big tree\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"people\", \"reason\": \"object category describing humans\"}\n  ]\n",
+        "target_words_phrases": [
+            "people"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Human6": {
+        "initial_text": "man in black on the right\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category that describes the inherent identity of the target\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute, which is a stable property of the target's appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "black"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Human7": {
+        "initial_text": "woman in white top and black pants\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"woman\", \"reason\": \"object category, referring to the person's identity\"},\n    {\"phrase\": \"white top\", \"reason\": \"color and clothing type, which are inherent and stable physical attributes\"},\n    {\"phrase\": \"black pants\", \"reason\": \"color and clothing type, which are inherent and stable physical attributes\"}\n  ]\n",
+        "target_words_phrases": [
+            "woman",
+            "white top",
+            "black pants"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3,
+            5,
+            6
+        ]
+    },
+    "Human8": {
+        "initial_text": "man with a backpack\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"backpack\", \"reason\": \"physical accessory associated with the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "backpack"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Human9": {
+        "initial_text": "people walking on the pavement\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"people\", \"reason\": \"object category, describing the target as humans\"},\n    {\"phrase\": \"pavement\", \"reason\": \"identifies the stable physical object related to the scene\"}\n  ]\n",
+        "target_words_phrases": [
+            "people",
+            "pavement"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            4
+        ]
+    },
+    "Jump": {
+        "initial_text": "athlete doing pole vault\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"athlete\", \"reason\": \"object category representing the person in focus\"}\n  ]\n",
+        "target_words_phrases": [
+            "athlete"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "KiteSurf": {
+        "initial_text": "face of the man surfing on the water\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"component of the man's physical characteristics\"},\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Man": {
+        "initial_text": "face of the man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "man"
+        ],
+        "subject_extrack_mask_infor": [
+            3
+        ]
+    },
+    "Panda": {
+        "initial_text": "panda on the left\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"panda\", \"reason\": \"object category that defines the target's inherent identity\"}\n  ]\n",
+        "target_words_phrases": [
+            "panda"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "RedTeam": {
+        "initial_text": "red and white vehicle on the field\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"red\", \"reason\": \"color is a stable property of the object\"},\n    {\"phrase\": \"white\", \"reason\": \"color is a stable property of the object\"},\n    {\"phrase\": \"vehicle\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "red",
+            "white",
+            "vehicle"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Rubik": {
+        "initial_text": "magic cube held by a man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"magic cube\", \"reason\": \"object category defining its physical essence\"}\n  ]\n",
+        "target_words_phrases": [
+            "magic cube"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Skater": {
+        "initial_text": "skating girl\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"girl\", \"reason\": \"object category, describing the physical essence of the person\"}\n  ]\n",
+        "target_words_phrases": [
+            "girl"
+        ],
+        "subject_extrack_mask_infor": [
+            1
+        ]
+    },
+    "Skater2": {
+        "initial_text": "man in black\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"man\", \"reason\": \"object category\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute of clothing\"}\n  ]\n",
+        "target_words_phrases": [
+            "man",
+            "black"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2
+        ]
+    },
+    "Skating2-1": {
+        "initial_text": "female skater in red\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"female\", \"reason\": \"describes the inherent gender attribute of the person\"},\n    {\"phrase\": \"skater\", \"reason\": \"object category indicating the individual is a skater\"},\n    {\"phrase\": \"red\", \"reason\": \"color attribute that remains stable for the skater's clothing or appearance\"}\n  ]\n",
+        "target_words_phrases": [
+            "female",
+            "skater",
+            "red"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            3
+        ]
+    },
+    "Skating2-2": {
+        "initial_text": "male skater in black\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"male\", \"reason\": \"describes the inherent biological attribute of the person\"},\n    {\"phrase\": \"skater\", \"reason\": \"object category referring to the role or essence of the target\"},\n    {\"phrase\": \"black\", \"reason\": \"color attribute, likely referring to clothing or equipment associated with the target\"}\n  ]\n",
+        "target_words_phrases": [
+            "male",
+            "skater",
+            "black"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1,
+            3
+        ]
+    },
+    "Surfer": {
+        "initial_text": "face of the surfer\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"face\", \"reason\": \"inherent physical feature of the surfer\"},\n    {\"phrase\": \"surfer\", \"reason\": \"object category identifying the person\"}\n  ]\n",
+        "target_words_phrases": [
+            "face",
+            "surfer"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            3
+        ]
+    },
+    "Toy": {
+        "initial_text": "toy with long ear held by a hand\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"toy\", \"reason\": \"object category\"},\n    {\"phrase\": \"long ear\", \"reason\": \"physical feature that is stable\"}\n  ]\n",
+        "target_words_phrases": [
+            "toy",
+            "long ear"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            2,
+            3
+        ]
+    },
+    "Trans": {
+        "initial_text": "yellow robot\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"yellow\", \"reason\": \"color is a stable property\"},\n    {\"phrase\": \"robot\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "yellow",
+            "robot"
+        ],
+        "subject_extrack_mask_infor": [
+            0,
+            1
+        ]
+    },
+    "Twinnings": {
+        "initial_text": "box held by a man\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"box\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "box"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    },
+    "Vase": {
+        "initial_text": "box in the center on a table\n",
+        "target_words_label": "\n  \"intrinsic_attributes\": [\n    {\"phrase\": \"box\", \"reason\": \"object category\"}\n  ]\n",
+        "target_words_phrases": [
+            "box"
+        ],
+        "subject_extrack_mask_infor": [
+            0
+        ]
+    }
+}

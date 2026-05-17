@@ -1,0 +1,75 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Extension / compiled artifacts
+*.so
+*.pyd
+*.dll
+
+# Packaging / build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / editor
+.vscode/.ropeproject
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project runtime outputs
+output/
+tensorboard/
+wandb/
+runs/
+logs/
+
+# Local generated configs / temp files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar
+
+# Local assets / private resources
+resource/pretrained_models/
+resource/pretrained_models
+archive_20260418/
+auth.json
+
+# Generated experiment reports
+scripts/*.log
+scripts/*.csv
+tracking/batch_analysis_tnl2k_*.md
+tracking/batch_analysis_tnl2k_*.csv
+tracking/generalization_analysis_*.md
+tracking/generalization_analysis_*.csv

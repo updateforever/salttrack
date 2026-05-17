@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "SALTTrack: debug base training",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lib/train/run_training.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "python": "/data1/anaconda3/envs/wyp_vlt/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "PYTHONNOUSERSITE": "1",
+                "PYTHONHOME": "",
+                "CUDA_VISIBLE_DEVICES": "7",
+                "OMP_NUM_THREADS": "4",
+                "OPENBLAS_NUM_THREADS": "4",
+                "MKL_NUM_THREADS": "4",
+                "VECLIB_MAXIMUM_THREADS": "4",
+                "NUMEXPR_NUM_THREADS": "4",
+                "OPENCV_OPENCL_RUNTIME": "disabled"
+            },
+            "args": [
+                "--script", "salttrack",
+                "--config", "salttrack_base",
+                "--save_dir", "${workspaceFolder}/output",
+                "--use_lmdb", "0",
+                "--use_wandb", "0",
+                "--seed", "42"
+            ],
+            "justMyCode": false
+        }
+    ]
+}
