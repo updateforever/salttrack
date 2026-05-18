@@ -6,7 +6,7 @@ from lib.utils.ce_utils import generate_mask_cond, adjust_keep_rate,generate_bbo
 from lib.train.admin import multigpu
 import torch.nn as nn
 from lib.utils.misc import NestedTensor
-from lib.models.layers.lora import collect_lora_residual_energies
+from lib.models.layers.lora import collect_lora_residual_energies, collect_lora_router_weights
 
 
 class SALTTrackActor(BaseActor):
@@ -28,6 +28,18 @@ class SALTTrackActor(BaseActor):
             if self.lora_cfg else 0.0
         self.lora_semantic_guide_type = self.lora_cfg.get('SEMANTIC_GUIDE_TYPE', 'suppress_unreliable') \
             if self.lora_cfg else 'suppress_unreliable'
+
+        # LoRA 结构类型：
+        #   standard: 原始单分支 LoRA，只使用 residual energy 正则。
+        #   routed:   双专家 SRR-LoRA，额外用语义可靠性监督 semantic expert route。
+        self.lora_type = self.lora_cfg.get('TYPE', 'standard') if self.lora_cfg else 'standard'
+
+        # ROUTER_SUPERVISE_WEIGHT 只对 routed LoRA 生效。它控制 L_router 的强度：
+        #   L_router = || r_s - semantic_gate ||^2
+        # 其中 r_s 是 semantic expert 的平均路由概率，semantic_gate 来自
+        # GT/pred/text 的语义可靠性估计。
+        self.lora_router_supervise_weight = self.lora_cfg.get('ROUTER_SUPERVISE_WEIGHT', 0.0) \
+            if self.lora_cfg else 0.0
 
         # 语义对齐相关配置
         self.use_semantic_align = cfg.MODEL.get('USE_SEMANTIC_ALIGN', False) if cfg else False
@@ -210,6 +222,8 @@ class SALTTrackActor(BaseActor):
         semantic_loss = torch.tensor(0.0, device=l1_loss.device)
         semantic_gate = torch.tensor(0.0, device=l1_loss.device)
         lora_semantic_reg = torch.tensor(0.0, device=l1_loss.device)
+        lora_router_loss = torch.tensor(0.0, device=l1_loss.device)
+        lora_semantic_route = torch.tensor(0.0, device=l1_loss.device)
         gt_text_similarity = torch.tensor(0.0, device=l1_loss.device)
         pred_text_similarity = torch.tensor(0.0, device=l1_loss.device)
 
@@ -275,16 +289,51 @@ class SALTTrackActor(BaseActor):
                         else:
                             guide_weight = 1.0 - semantic_gate_per_sample
                         target_size = guide_weight.numel()
+
+                        # 不同 LoRA 层的输入形状不完全一致：
+                        # 有的层按样本 B 前向，有的层按 B * num_search 或 token
+                        # 维展开前向。这里统一压回 semantic_gate_per_sample 的
+                        # 样本维度，才能逐样本加权 residual energy。
                         aligned_energies = [
                             self._align_lora_energy_to_target(energy, target_size)
                             for energy in lora_energies
                         ]
                         lora_energy = torch.stack(aligned_energies, dim=0).mean(dim=0)
+
+                        # suppress_unreliable 模式下 guide_weight = 1 - gate：
+                        # 语义不可靠时更强地压制 LoRA residual，避免低秩适配被
+                        # 噪声文本/错误语义信号带偏。
                         lora_semantic_reg = (guide_weight * lora_energy).mean()
                     else:
                         lora_semantic_reg = torch.tensor(0.0, device=l1_loss.device)
                 else:
                     lora_semantic_reg = torch.tensor(0.0, device=l1_loss.device)
+
+                if self.lora_type == 'routed' and self.lora_router_supervise_weight > 0:
+                    net = self.net.module if multigpu.is_multi_gpu(self.net) else self.net
+                    router_weights = collect_lora_router_weights(net)
+                    if len(router_weights) > 0:
+                        target_size = semantic_gate_per_sample.numel()
+
+                        # 收集所有 RoutedLoRALinear 的 semantic expert 概率 r_s。
+                        # 每层可能有不同 token 数或 batch 展开方式，因此同样对齐到
+                        # semantic_gate_per_sample 的样本维度后再跨层平均。
+                        aligned_routes = [
+                            self._align_lora_energy_to_target(route_weight, target_size)
+                            for route_weight in router_weights
+                        ]
+                        semantic_route = torch.stack(aligned_routes, dim=0).mean(dim=0)
+                        lora_semantic_route = semantic_route.mean()
+
+                        # 用语义可靠性 gate 监督 router，而不是直接把文本喂进
+                        # LoRA 参数生成器。这样 routed LoRA 在推理时只依赖输入
+                        # feature 做路由，但训练阶段学到“何时更该走 semantic expert”。
+                        lora_router_loss = torch.nn.functional.mse_loss(
+                            semantic_route,
+                            semantic_gate_per_sample.detach(),
+                        )
+                    else:
+                        lora_router_loss = torch.tensor(0.0, device=l1_loss.device)
 
                 current_epoch = gt_dict.get('epoch', 0)
                 lambda_semantic = self.get_semantic_weight(current_epoch)
@@ -301,6 +350,12 @@ class SALTTrackActor(BaseActor):
                lambda_semantic * semantic_loss
         if self.use_semantic_guided_lora and self.lora_semantic_guide_weight > 0:
             loss = loss + lambda_semantic * self.lora_semantic_guide_weight * lora_semantic_reg
+
+        # Routed LoRA 的结构监督项：把 semantic expert 的路由概率 r_s 拉向
+        # semantic_gate。lambda_semantic 复用语义监督的阶段调度，避免训练早晚期
+        # router 监督强度与主语义分支脱节。
+        if self.lora_type == 'routed' and self.lora_router_supervise_weight > 0:
+            loss = loss + lambda_semantic * self.lora_router_supervise_weight * lora_router_loss
 
         if return_status:
             # status for log
@@ -324,6 +379,9 @@ class SALTTrackActor(BaseActor):
                 status["pred_text_similarity"] = pred_text_similarity.item()
             if self.use_semantic_guided_lora:
                 status["Loss/lora_semantic_reg"] = lora_semantic_reg.item()
+            if self.lora_type == 'routed':
+                status["Loss/lora_router"] = lora_router_loss.item()
+                status["lora_semantic_route"] = lora_semantic_route.item()
 
             return loss, status
         else:

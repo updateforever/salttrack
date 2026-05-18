@@ -239,7 +239,9 @@ def get_optimizer_scheduler(net, cfg):
         for _, p in net.named_parameters():
             p.requires_grad = False
         for n, p in net.named_parameters():
-            if "lora_A" in n or "lora_B" in n:
+            # 标准 LoRA 只包含 lora_A/lora_B；SRR-LoRA 额外包含 lora_router。
+            # peft_lora 模式下只打开这些低秩适配/路由参数，保持 base tracker 冻结。
+            if "lora_A" in n or "lora_B" in n or "lora_router" in n:
                 p.requires_grad = True
     else:
         for _, p in net.named_parameters():

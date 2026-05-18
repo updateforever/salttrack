@@ -660,20 +660,31 @@ def build_salttrack(cfg, training=True):
             for param in module.parameters():
                 param.requires_grad = False
 
-    # WYP: LoRA 仅注入视觉/融合模块，避免直接扰动文本锚点。
+    # WYP: LoRA 仅注入指定的视觉/融合/预测模块，避免直接扰动文本锚点。
     # 这里训练和推理都要注入同样的 LoRA 结构，否则测试时无法完整加载 LoRA checkpoint。
+    #
+    # TYPE=standard:
+    #   每个 nn.Linear 替换为标准单分支 LoRA，用作最直接的 PEFT baseline。
+    # TYPE=routed:
+    #   每个 nn.Linear 替换为双专家 SRR-LoRA。EXPERT_RANK 控制单个 expert
+    #   的 rank；例如 standard RANK=8、routed EXPERT_RANK=4 时，两个 expert
+    #   的 A/B 参数量大致与标准 LoRA 对齐，方便做参数量受控的消融。
     lora_cfg = getattr(cfg.MODEL, "LORA", None)
     lora_enabled = bool(lora_cfg and getattr(lora_cfg, "ENABLED", False))
     if lora_enabled:
         target_modules = list(getattr(lora_cfg, "TARGET_MODULES", ["vl_fusion", "visual_temporal_fusion"]))
+        lora_type = getattr(lora_cfg, "TYPE", "standard")
+        lora_rank = getattr(lora_cfg, "EXPERT_RANK", getattr(lora_cfg, "RANK", 8)) \
+            if lora_type == "routed" else getattr(lora_cfg, "RANK", 8)
         replaced_layers = apply_lora_to_modules(
             model,
             target_module_names=target_modules,
-            rank=getattr(lora_cfg, "RANK", 8),
+            rank=lora_rank,
             alpha=getattr(lora_cfg, "ALPHA", 16),
             dropout=getattr(lora_cfg, "DROPOUT", 0.0),
+            lora_type=lora_type,
         )
-        print("WYP: Applied LoRA to layers:")
+        print("WYP: Applied {} LoRA to layers:".format(lora_type))
         for layer_name in replaced_layers:
             print("  ", layer_name)
 

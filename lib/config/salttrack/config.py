@@ -19,7 +19,9 @@ cfg.MODEL.PRETRAINED_PATH = ""
 cfg.MODEL.USE_SEMANTIC_ALIGN = False
 cfg.MODEL.LORA = edict()
 cfg.MODEL.LORA.ENABLED = False
+cfg.MODEL.LORA.TYPE = "standard"  # standard or routed
 cfg.MODEL.LORA.RANK = 8
+cfg.MODEL.LORA.EXPERT_RANK = 4  # used by routed LoRA; two experts with rank 4 roughly match rank-8 standard LoRA
 cfg.MODEL.LORA.ALPHA = 16
 cfg.MODEL.LORA.DROPOUT = 0.0
 cfg.MODEL.LORA.TARGET_MODULES = ["vl_fusion", "visual_temporal_fusion"]
@@ -29,6 +31,7 @@ cfg.MODEL.LORA.STAGE2_LAYERS = []
 cfg.MODEL.LORA.SEMANTIC_GUIDED = False
 cfg.MODEL.LORA.SEMANTIC_GUIDE_WEIGHT = 0.0
 cfg.MODEL.LORA.SEMANTIC_GUIDE_TYPE = "suppress_unreliable"
+cfg.MODEL.LORA.ROUTER_SUPERVISE_WEIGHT = 0.0
 
 
 # MODEL.BACKBONE
