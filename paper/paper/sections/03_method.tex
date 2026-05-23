@@ -1,0 +1,32 @@
+\section{Method}
+\subsection{Overview}
+Fig.~\ref{fig:framework} illustrates the overall framework of SALTTrack. The tracker receives a template image, a search image, and a language description. The visual-language backbone extracts multimodal representations, the tracking head predicts target localization, and the proposed semantic alignment branch regularizes feature learning with text-guided supervision.
+
+\begin{figure*}[t]
+    \centering
+    \fbox{\rule{0pt}{1.2in}\rule{0.92\linewidth}{0pt}}
+    \caption{Overall framework of SALTTrack. Placeholder for the final framework figure.}
+    \label{fig:framework}
+\end{figure*}
+
+\subsection{Text-Guided Semantic Alignment}
+Placeholder for the semantic feature construction. Let $\mathbf{f}_p$, $\mathbf{f}_g$, and $\mathbf{t}$ denote the predicted visual feature, ground-truth visual feature, and target text feature, respectively. The alignment objective contains a direction term and a distance term.
+
+\begin{equation}
+    \mathcal{L}_{sem} =
+    \lambda_{dir}\mathcal{L}_{dir} +
+    \lambda_{dist}\mathcal{L}_{dist}.
+\end{equation}
+
+The direction term encourages the correction direction from prediction to text to be consistent with the correction direction from ground truth to text. The distance term mildly pulls visual and textual features closer, but is assigned a smaller weight to avoid representation collapse.
+
+\subsection{Semantic-Guided Routed LoRA}
+Placeholder for the routed LoRA module. The key point is to adapt selected language/multimodal layers with low-rank updates and route the adaptation strength according to semantic reliability.
+
+\subsection{Training Objective}
+The final training objective combines the original tracking loss and the semantic alignment loss:
+\begin{equation}
+    \mathcal{L} =
+    \mathcal{L}_{track} +
+    \lambda_{sem}\mathcal{L}_{sem}.
+\end{equation}

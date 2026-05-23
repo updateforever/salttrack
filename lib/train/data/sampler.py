@@ -6,6 +6,7 @@ from lib.utils import TensorDict
 import numpy as np
 # from pytorch_pretrained_bert import BertTokenizer
 import os
+import zlib
 
 def no_processing(data):
     return data
@@ -165,6 +166,12 @@ class TrackingSampler(torch.utils.data.Dataset):
             try:
                 template_frames, template_anno, meta_obj_train = dataset.get_frames(seq_id, template_frame_ids, seq_info_dict)
                 search_frames, search_anno, meta_obj_test = dataset.get_frames(seq_id, search_frame_ids, seq_info_dict)
+                dataset_name = dataset.get_name()
+                # Stable numeric id for contrastive masking. Samples from the
+                # same dataset sequence should not be used as negatives against
+                # each other, even when they are drawn on different GPUs.
+                dataset_hash = zlib.crc32(dataset_name.encode("utf-8")) % 100000
+                contrast_group_id = dataset_hash * 10000000 + int(seq_id)
 
                 H, W, _ = template_frames[0].shape
                 template_masks = template_anno['mask'] if 'mask' in template_anno else [torch.zeros((H, W))] * self.num_template_frames
@@ -175,7 +182,8 @@ class TrackingSampler(torch.utils.data.Dataset):
                                    'search_images': search_frames,
                                    'search_anno': search_anno['bbox'],
                                    'search_masks': search_masks,
-                                   'dataset': dataset.get_name(),
+                                   'dataset': dataset_name,
+                                   'contrast_group_id': contrast_group_id,
                                    'test_class': meta_obj_test.get('object_class_name')})
 
                 # # tokenize language

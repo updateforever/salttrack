@@ -1,0 +1,16 @@
+\section{Introduction}
+\IEEEPARstart{V}{isual-language} tracking (VLT) localizes a target object in a video sequence given both an initial visual template and a natural language description. Compared with conventional visual tracking, language provides complementary semantic cues that are especially useful under appearance changes, occlusion, distractors, and ambiguous scenes.
+
+Despite recent progress, existing VLT methods still face a key limitation: the language branch is usually used as a conditioning signal, while the learned visual representation is not explicitly constrained to be semantically consistent with the textual description. As a result, the tracker may fit visual localization objectives without learning a text-aware representation that can be inspected or explained.
+
+We propose SALTTrack, a semantic alignment and lightweight tuning framework for visual-language tracking. Our main contribution is a text-guided semantic alignment loss that supervises the relation between predicted visual features, ground-truth visual features, and target text features. Instead of simply maximizing absolute visual-text similarity, we emphasize direction-aware semantic correction, which encourages the prediction feature to move toward the semantic direction implied by the ground truth and the language description. A mild distance term is further used to improve semantic compactness without forcing collapse.
+
+In addition, we introduce a routed LoRA adaptation mechanism for efficient fine-tuning. The routed design dynamically modulates low-rank adaptation paths according to semantic reliability, allowing the tracker to adapt to VLT data without updating the full model.
+
+The main contributions are summarized as follows:
+\begin{itemize}
+    \item We introduce a semantic alignment objective for visual-language tracking, providing explicit text-guided supervision beyond box regression and classification losses.
+    \item We formulate alignment as direction-dominant semantic correction with controlled distance regularization, improving interpretability while avoiding over-constrained text-visual similarity.
+    \item We develop a semantic-guided routed LoRA tuning strategy for parameter-efficient adaptation.
+    \item We conduct experiments on representative VLT benchmarks and provide ablations and visual analyses to validate both effectiveness and interpretability.
+\end{itemize}

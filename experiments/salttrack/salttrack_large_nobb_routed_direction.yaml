@@ -21,13 +21,13 @@ DATA:
       - TNL2K_train
       - OTB99_train
     DATASETS_RATIO: [6, 6, 6, 1]
-    SAMPLE_PER_EPOCH: 16000
+    SAMPLE_PER_EPOCH: 25000
 
 MODEL:
-  PRETRAIN_FILE: "fast_itpn_base_clipl_e1600.pt"
-  PRETRAINED_PATH: "/data/MODEL_WEIGHTS_PUBLIC/VLT_weights/ATCTrack-master/models/ATCTrack_b.pth.tar"
+  PRETRAIN_FILE: "fast_itpn_large_1600e_1k.pt"
+  PRETRAINED_PATH: "/data/MODEL_WEIGHTS_PUBLIC/VLT_weights/ATCTrack-master/models/ATCTrack_l.pth.tar"
   BACKBONE:
-    TYPE: itpn_base
+    TYPE: itpn_large
     STRIDE: 16
   HEAD:
     TYPE: CENTER
@@ -41,7 +41,8 @@ MODEL:
     EXPERT_RANK: 4
     ALPHA: 16
     DROPOUT: 0.0
-    TARGET_MODULES: ["backbone", "language_adjust", "vl_fusion", "visual_temporal_fusion", "confidence_pred"]
+    # No backbone LoRA: keep the visual encoder frozen and adapt only language/fusion/head modules.
+    TARGET_MODULES: ["language_adjust", "vl_fusion", "visual_temporal_fusion", "confidence_pred"]
     SEMANTIC_GUIDED: true
     SEMANTIC_GUIDE_WEIGHT: 0.1
     SEMANTIC_GUIDE_TYPE: suppress_unreliable
@@ -52,16 +53,16 @@ TRAIN:
   FREEZE_TEXT_SIDE: true
   BACKBONE_MULTIPLIER: 0.1
   DROP_PATH_RATE: 0.1
-  BATCH_SIZE: 6
+  BATCH_SIZE: 64
   EPOCH: 80
   GIOU_WEIGHT: 2.0
   L1_WEIGHT: 5.0
   GRAD_CLIP_NORM: 0.1
   LR: 0.0001
   LR_DROP_EPOCH: 60
-  NUM_WORKER: 8
+  NUM_WORKER: 4
   OPTIMIZER: ADAMW
-  PRINT_INTERVAL: 50
+  PRINT_INTERVAL: 10
   SAVE_INTERVAL: 10
   SCHEDULER:
     TYPE: step

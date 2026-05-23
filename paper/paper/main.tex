@@ -1,0 +1,50 @@
+\documentclass[lettersize,journal]{IEEEtran}
+
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\graphicspath{{figures/}}
+\hyphenation{SALT-Track visual-language track-ing}
+
+\begin{document}
+
+\title{SALTTrack: Semantic Alignment and Lightweight Tuning for Visual-Language Tracking}
+
+\author{Author~Name,
+        Author~Name,
+        and~Author~Name%
+\thanks{Manuscript received Month xx, 2026; revised Month xx, 2026.}
+\thanks{The authors are with xxx. Corresponding author: xxx.}}
+
+\markboth{IEEE Transactions on Image Processing,~Vol.~xx, No.~x, Month~2026}%
+{Author \MakeLowercase{\textit{et al.}}: SALTTrack}
+
+\maketitle
+
+\input{sections/00_abstract}
+
+\begin{IEEEkeywords}
+Visual-language tracking, semantic alignment, low-rank adaptation, parameter-efficient fine-tuning.
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_method}
+\input{sections/04_experiments}
+\input{sections/05_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

@@ -1,5 +1,5 @@
 import math
-from typing import Iterable, List
+from typing import Iterable, List, Tuple
 
 import torch
 from torch import nn
@@ -282,4 +282,19 @@ def collect_lora_router_weights(model: nn.Module) -> List[torch.Tensor]:
             weight = module.get_semantic_route_weight()
             if weight is not None:
                 route_weights.append(weight)
+    return route_weights
+
+
+def collect_lora_router_weights_named(model: nn.Module) -> List[Tuple[str, torch.Tensor]]:
+    """Collect named semantic-expert route probabilities from routed LoRA layers.
+
+    This is used only by visualization / analysis scripts. It keeps the training
+    actor's lighter unnamed collection path unchanged.
+    """
+    route_weights = []
+    for name, module in model.named_modules():
+        if isinstance(module, RoutedLoRALinear):
+            weight = module.get_semantic_route_weight()
+            if weight is not None:
+                route_weights.append((name, weight))
     return route_weights

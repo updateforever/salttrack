@@ -211,7 +211,8 @@ class SALTTrack(nn.Module):
                 search_anno=None,
                 temporal_infor=[],
                 first_frame_flag=False,
-                training=True):
+                training=True,
+                return_visualization=False):
 
         # b0: batch size
         # num_search: 训练时每个样本包含多少个 search frame，用于模拟短时序目标状态变化
@@ -411,7 +412,7 @@ class SALTTrack(nn.Module):
         # 1. 预测框 RoI 特征
         # 2. GT 框 RoI 特征
         # 3. SALTTrack 增强后的文本特征
-        if self.use_semantic_align and training:
+        if self.use_semantic_align and (training or return_visualization):
             pred_boxes = out['pred_boxes'].squeeze(1)  # [B*num_search, 4]
             pred_visual_features = self.extract_instance_features(xt_data, pred_boxes)
             gt_visual_features = None
@@ -423,6 +424,7 @@ class SALTTrack(nn.Module):
             out['pred_visual_features'] = pred_visual_features
             out['gt_visual_features'] = gt_visual_features
             out['target_text_features'] = target_text_features
+            out['semantic_feature_map'] = xt_data
 
         if training == False:
             out["temporal_infor"] = temporal_infor

@@ -35,8 +35,7 @@ def run_tracker(tracker_name, tracker_param, run_id=None, dataset_name='otb', se
     checkpoints_path = ckpt_path
 
     results_dir = os.path.join(env.save_dir, tracker_param)
-    if os.path.exists(results_dir) ==False:
-        os.makedirs(results_dir)
+    os.makedirs(results_dir, exist_ok=True)
     # trackers = [Tracker(tracker_name, tracker_param, dataset_name, run_id)]
 
     trackers = trackerlist(name=tracker_name, parameter_name=tracker_param, dataset_name=dataset_name,

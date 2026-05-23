@@ -1,0 +1,69 @@
+\section{Experiments}
+\subsection{Experimental Setup}
+Placeholder for datasets, implementation details, training schedule, evaluation protocols, and metrics. We report AUC, precision (P), and normalized precision (NP) where applicable.
+
+\subsection{Main Results}
+Table~\ref{tab:main_results} reports the main comparison on representative VLT benchmarks.
+
+\begin{table*}[t]
+\centering
+\caption{Main results on representative visual-language tracking benchmarks. The final SALTTrack configuration is reported.}
+\label{tab:main_results}
+\begin{tabular}{lccccccccccccccc}
+\toprule
+\multirow{2}{*}{Method} &
+\multicolumn{3}{c}{LaSOT} &
+\multicolumn{3}{c}{TNL2K} &
+\multicolumn{3}{c}{OTB} &
+\multicolumn{3}{c}{VastTrack} &
+\multicolumn{3}{c}{MGIT} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}\cmidrule(lr){14-16}
+& AUC & P & NP & AUC & P & NP & AUC & P & NP & AUC & P & NP & AUC & P & NP \\
+\midrule
+Baseline & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SALTTrack & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Ablation Study}
+Table~\ref{tab:ablation} studies the semantic alignment and LoRA design on TNL2K.
+
+\begin{table}[t]
+\centering
+\caption{Ablation study on TNL2K.}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+Variant & AUC & P & NP \\
+\midrule
+Baseline & -- & -- & -- \\
+Distance only & -- & -- & -- \\
+Direction only & -- & -- & -- \\
+Direction + distance & -- & -- & -- \\
+SALTTrack w/o routed LoRA & -- & -- & -- \\
+SALTTrack & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Efficiency Analysis}
+Table~\ref{tab:efficiency} compares trainable parameters, memory, and training or inference speed.
+
+\begin{table}[t]
+\centering
+\caption{Efficiency comparison of different tuning strategies.}
+\label{tab:efficiency}
+\begin{tabular}{lccc}
+\toprule
+Setting & Trainable Params & Memory & FPS \\
+\midrule
+Full fine-tuning & -- & -- & -- \\
+Standard LoRA & -- & -- & -- \\
+Routed LoRA & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Visualization and Analysis}
+Placeholder for qualitative tracking visualization, IoU curves, semantic direction consistency curves, semantic reliability curves, and routed LoRA depth-wise routing plots.

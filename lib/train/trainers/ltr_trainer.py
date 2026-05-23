@@ -58,7 +58,8 @@ class LTRTrainer(BaseTrainer):
         torch.set_grad_enabled(loader.training)
 
         self._init_timing()
-        print("Current Epoch: ", self.epoch)
+        if self.settings.local_rank in [-1, 0]:
+            print("Current Epoch: ", self.epoch)
         # print(loader.training)
 
         for i, data in enumerate(loader, 1):
@@ -131,9 +132,20 @@ class LTRTrainer(BaseTrainer):
         batch_fps = batch_size / (current_time - self.prev_time)
         average_fps = self.num_frames / (current_time - self.start_time)
         self.prev_time = current_time
+        if self.settings.local_rank not in [-1, 0]:
+            return
         if i % self.settings.print_interval == 0 or i == loader.__len__():
             print_str = '[%s: %d, %d / %d] ' % (loader.name, self.epoch, i, loader.__len__())
             print_str += 'FPS: %.1f (%.1f)  ,  ' % (average_fps, batch_fps)
+            if torch.cuda.is_available():
+                allocated = torch.cuda.memory_allocated() / 1024 ** 3
+                reserved = torch.cuda.memory_reserved() / 1024 ** 3
+                max_allocated = torch.cuda.max_memory_allocated() / 1024 ** 3
+                max_reserved = torch.cuda.max_memory_reserved() / 1024 ** 3
+                print_str += (
+                    'Mem/alloc: %.2fG  ,  Mem/reserved: %.2fG  ,  '
+                    'Mem/max_alloc: %.2fG  ,  Mem/max_reserved: %.2fG  ,  '
+                ) % (allocated, reserved, max_allocated, max_reserved)
             for name, val in self.stats[loader.name].items():
                 if (self.settings.print_stats is None or name in self.settings.print_stats):
                     if hasattr(val, 'avg'):

@@ -5,6 +5,7 @@ from lib.utils.heapmap_utils import generate_heatmap
 from lib.utils.ce_utils import generate_mask_cond, adjust_keep_rate,generate_bbox_mask
 from lib.train.admin import multigpu
 import torch.nn as nn
+import torch.distributed as dist
 from lib.utils.misc import NestedTensor
 from lib.models.layers.lora import collect_lora_residual_energies, collect_lora_router_weights
 
@@ -57,6 +58,14 @@ class SALTTrackActor(BaseActor):
             # WYP: 当使用 'both' 时，两种损失的权重
             self.semantic_distance_weight = cfg.TRAIN.get('SEMANTIC_DISTANCE_WEIGHT', 0.5)
             self.semantic_direction_weight = cfg.TRAIN.get('SEMANTIC_DIRECTION_WEIGHT', 0.5)
+            self.semantic_contrast_weight = cfg.TRAIN.get('SEMANTIC_CONTRAST_WEIGHT', 0.0)
+            self.semantic_contrast_tau = cfg.TRAIN.get('SEMANTIC_CONTRAST_TAU', 0.07)
+            self.semantic_contrast_mode = cfg.TRAIN.get('SEMANTIC_CONTRAST_MODE', 'v2t')
+            self.semantic_hard_neg_weight = cfg.TRAIN.get('SEMANTIC_HARD_NEG_WEIGHT', 0.0)
+            self.semantic_hard_neg_topk = cfg.TRAIN.get('SEMANTIC_HARD_NEG_TOPK', 8)
+            self.semantic_hard_neg_margin = cfg.TRAIN.get('SEMANTIC_HARD_NEG_MARGIN', 0.1)
+            self.semantic_hard_neg_suppress_radius = cfg.TRAIN.get('SEMANTIC_HARD_NEG_SUPPRESS_RADIUS', 0.15)
+            self.semantic_hard_neg_suppress_power = cfg.TRAIN.get('SEMANTIC_HARD_NEG_SUPPRESS_POWER', 2.0)
             # WYP: 语义权重阶段切换不再复用 LoRA 配置，单独放在 TRAIN 里管理。
             self.stage1_ratio = cfg.TRAIN.get('SEMANTIC_STAGE1_RATIO', 0.4)
             self.total_epochs = cfg.TRAIN.EPOCH
@@ -129,6 +138,178 @@ class SALTTrackActor(BaseActor):
 
         # Fallback: keep training robust even if some layer uses an unexpected layout.
         return energy.mean().expand(target_size)
+
+    def _build_temporal_sample_ids(self, total_size: int, local_batch_size: int, device,
+                                   group_ids=None):
+        """Return ids and whether they are globally comparable across GPUs.
+
+        Training data is laid out as [search_step_0 batch, search_step_1 batch, ...].
+        Frames from the same original sample share the same language description and
+        must not be treated as negatives in the contrastive objective.
+
+        If dataset-level group ids are provided, they identify the original
+        dataset sequence. This additionally prevents samples drawn from the same
+        sequence, possibly on different GPUs, from being used as negatives.
+        """
+        if group_ids is not None:
+            group_ids = torch.as_tensor(group_ids, device=device, dtype=torch.long).reshape(-1)
+            if group_ids.numel() == local_batch_size and total_size % local_batch_size == 0:
+                return group_ids.repeat(total_size // local_batch_size), True
+
+        if local_batch_size <= 0 or total_size % local_batch_size != 0:
+            return torch.arange(total_size, device=device), False
+        return torch.arange(local_batch_size, device=device).repeat(total_size // local_batch_size), False
+
+    def _masked_contrastive_loss(self, visual_feat: torch.Tensor, text_feat: torch.Tensor,
+                                 sample_ids: torch.Tensor,
+                                 sample_ids_are_global: bool = False) -> torch.Tensor:
+        """Global contrastive loss with configurable v2t or bidirectional mode.
+
+        sample_ids mark entries that should not be negatives against each other.
+        When ids come from dataset sequence ids, they are already globally unique
+        and must stay unchanged after DDP all_gather. When ids are local fallback
+        indices, we offset them by rank to avoid accidental cross-GPU matches.
+        """
+        if visual_feat.size(0) <= 1:
+            return visual_feat.new_tensor(0.0)
+
+        visual_feat = torch.nn.functional.normalize(visual_feat, dim=-1)
+        text_feat = torch.nn.functional.normalize(text_feat, dim=-1)
+        local_visual_feat = visual_feat
+        local_text_feat = text_feat
+        local_sample_ids = sample_ids
+
+        if dist.is_available() and dist.is_initialized():
+            world_size = dist.get_world_size()
+            rank = dist.get_rank()
+            visual_list = [torch.zeros_like(visual_feat) for _ in range(world_size)]
+            text_list = [torch.zeros_like(text_feat) for _ in range(world_size)]
+            sample_id_list = [torch.zeros_like(sample_ids) for _ in range(world_size)]
+            dist.all_gather(visual_list, visual_feat.detach())
+            dist.all_gather(text_list, text_feat.detach())
+            dist.all_gather(sample_id_list, sample_ids)
+            visual_list[rank] = visual_feat
+            text_list[rank] = text_feat
+            if sample_ids_are_global:
+                local_sample_ids = sample_ids
+            else:
+                global_batch = sample_ids.max().detach() + 1
+                sample_id_list = [
+                    sid + global_batch * device_rank
+                    for device_rank, sid in enumerate(sample_id_list)
+                ]
+                local_sample_ids = sample_ids + global_batch * rank
+            visual_feat = torch.cat(visual_list, dim=0)
+            text_feat = torch.cat(text_list, dim=0)
+            sample_ids = torch.cat(sample_id_list, dim=0)
+
+        logits_v2t = torch.matmul(local_visual_feat, text_feat.t()) / max(float(self.semantic_contrast_tau), 1e-6)
+        pos_mask_v2t = local_sample_ids[:, None].eq(sample_ids[None, :]).float()
+        pos_count_v2t = pos_mask_v2t.sum(dim=1).clamp(min=1.0)
+
+        log_prob_v2t = logits_v2t - torch.logsumexp(logits_v2t, dim=1, keepdim=True)
+        loss_v2t = -((pos_mask_v2t * log_prob_v2t).sum(dim=1) / pos_count_v2t).mean()
+        if self.semantic_contrast_mode != 'bidirectional':
+            return loss_v2t
+
+        logits_t2v = torch.matmul(local_text_feat, visual_feat.t()) / max(float(self.semantic_contrast_tau), 1e-6)
+        pos_mask_t2v = local_sample_ids[:, None].eq(sample_ids[None, :]).float()
+        pos_count_t2v = pos_mask_t2v.sum(dim=1).clamp(min=1.0)
+        log_prob_t2v = logits_t2v - torch.logsumexp(logits_t2v, dim=1, keepdim=True)
+        loss_t2v = -((pos_mask_t2v * log_prob_t2v).sum(dim=1) / pos_count_t2v).mean()
+        return 0.5 * (loss_v2t + loss_t2v)
+
+    def _hard_visual_negative_loss(self, feature_map: torch.Tensor, score_map: torch.Tensor,
+                                   size_map: torch.Tensor, offset_map: torch.Tensor,
+                                   gt_bbox_xywh: torch.Tensor, text_feat: torch.Tensor) -> torch.Tensor:
+        """Use high-confidence non-target proposals as text-conditioned hard visual negatives.
+
+        score_map is the tracker's center confidence map. High responses away from
+        the GT center are exactly the distractor locations that the tracker is most
+        likely to confuse with the target. For each top-k response, we combine its
+        center, size_map, and offset_map to form a predicted proposal box, then use
+        the same RoIAlign feature extractor as the positive GT box. We enforce:
+
+            sim(text, GT visual) > sim(text, hard negative visual) + margin
+
+        Locations close to the GT center are softly suppressed, since nearby peaks
+        can still describe the target reasonably well and should not be punished as
+        strongly as far-away distractors.
+        """
+        if feature_map is None or score_map is None or size_map is None or offset_map is None \
+                or gt_bbox_xywh is None or text_feat is None:
+            ref_tensor = feature_map if feature_map is not None else score_map
+            ref_tensor = ref_tensor if ref_tensor is not None else size_map
+            ref_tensor = ref_tensor if ref_tensor is not None else offset_map
+            ref_tensor = ref_tensor if ref_tensor is not None else gt_bbox_xywh
+            ref_tensor = ref_tensor if ref_tensor is not None else text_feat
+            return ref_tensor.new_tensor(0.0)
+        if feature_map.dim() != 4 or score_map.dim() != 4 or size_map.dim() != 4 or offset_map.dim() != 4:
+            return text_feat.new_tensor(0.0)
+
+        n, c, h, w = feature_map.shape
+        if n == 0 or score_map.shape[0] != n or size_map.shape[0] != n or offset_map.shape[0] != n:
+            return feature_map.new_tensor(0.0)
+
+        # 1. Pick top-k high-confidence center locations from the score map.
+        #    We detach the score map for selection so the loss does not optimize by
+        #    merely changing which locations are selected as hard negatives.
+        score_flat = score_map[:, 0].reshape(n, -1)
+        topk = min(int(self.semantic_hard_neg_topk), score_flat.size(1))
+        if topk <= 0:
+            return feature_map.new_tensor(0.0)
+
+        _, topk_idx = torch.topk(score_flat.detach(), k=topk, dim=1)
+        y = torch.div(topk_idx, w, rounding_mode='floor')
+        x = topk_idx % w
+
+        # 2. Convert each selected peak into a predicted proposal box using the
+        #    same center-head decoding rule as the normal prediction path:
+        #      cx, cy = (grid location + offset) / feature_size
+        #      w, h   = size_map at that location
+        size_flat = size_map.flatten(2).transpose(1, 2)
+        offset_flat = offset_map.flatten(2).transpose(1, 2)
+        box_gather_idx = topk_idx.unsqueeze(-1).expand(-1, -1, 2)
+        neg_size = torch.gather(size_flat, dim=1, index=box_gather_idx)
+        neg_offset = torch.gather(offset_flat, dim=1, index=box_gather_idx)
+        neg_cx = (x.float() + neg_offset[..., 0]) / float(w)
+        neg_cy = (y.float() + neg_offset[..., 1]) / float(h)
+        neg_boxes = torch.stack([neg_cx, neg_cy, neg_size[..., 0], neg_size[..., 1]], dim=-1)
+        neg_boxes = neg_boxes.reshape(n * topk, 4).clamp(min=0.0, max=1.0)
+
+        # 3. Extract negative proposal RoI features. Positive and negative visual
+        #    samples now use the same RoIAlign-based feature extractor.
+        feature_map_expanded = feature_map[:, None].expand(n, topk, c, h, w).reshape(n * topk, c, h, w)
+        net = self.net.module if multigpu.is_multi_gpu(self.net) else self.net
+        neg_feat = net.extract_instance_features(feature_map_expanded, neg_boxes).reshape(n, topk, c)
+
+        # 4. Compute text-negative similarities for each hard proposal.
+        text_feat = torch.nn.functional.normalize(text_feat, dim=-1)
+        neg_feat = torch.nn.functional.normalize(neg_feat, dim=-1)
+        neg_sim = (neg_feat * text_feat[:, None, :]).sum(dim=-1)
+
+        # 5. Down-weight negatives close to the GT center. Close responses may
+        #    overlap the target or be equivalent localizations, so their penalty
+        #    should be small. Far-away high responses keep full weight.
+        gt_cx = gt_bbox_xywh[:, 0].clamp(0.0, 1.0)
+        gt_cy = gt_bbox_xywh[:, 1].clamp(0.0, 1.0)
+        grid_x = (x.float() + 0.5) / float(w)
+        grid_y = (y.float() + 0.5) / float(h)
+        dist = torch.sqrt((grid_x - gt_cx[:, None]) ** 2 + (grid_y - gt_cy[:, None]) ** 2)
+
+        radius = max(float(self.semantic_hard_neg_suppress_radius), 1e-6)
+        power = max(float(self.semantic_hard_neg_suppress_power), 0.0)
+        neg_weight = torch.clamp(dist / radius, min=0.0, max=1.0) ** power
+
+        # 6. Positive visual feature is the RoI feature of the GT box. The margin
+        #    loss only fires when a hard negative is too similar to the text.
+        pos_visual = net.extract_instance_features(feature_map, gt_bbox_xywh)
+        pos_visual = torch.nn.functional.normalize(pos_visual, dim=-1)
+        pos_sim = (pos_visual * text_feat).sum(dim=-1, keepdim=True)
+
+        margin = float(self.semantic_hard_neg_margin)
+        hard_loss = torch.nn.functional.relu(margin - pos_sim + neg_sim) * neg_weight
+        return hard_loss.sum() / neg_weight.sum().clamp(min=1.0)
 
     def forward_pass(self, data):
         # assert len(data['template_images']) == 1
@@ -226,6 +407,12 @@ class SALTTrackActor(BaseActor):
         lora_semantic_route = torch.tensor(0.0, device=l1_loss.device)
         gt_text_similarity = torch.tensor(0.0, device=l1_loss.device)
         pred_text_similarity = torch.tensor(0.0, device=l1_loss.device)
+        semantic_distance_loss = torch.tensor(0.0, device=l1_loss.device)
+        semantic_direction_loss = torch.tensor(0.0, device=l1_loss.device)
+        semantic_direction_consistency = torch.tensor(0.0, device=l1_loss.device)
+        semantic_contrast_loss = torch.tensor(0.0, device=l1_loss.device)
+        semantic_hard_neg_loss = torch.tensor(0.0, device=l1_loss.device)
+        delta_text_similarity = torch.tensor(0.0, device=l1_loss.device)
 
         if self.use_semantic_align and 'pred_visual_features' in pred_dict and 'gt_visual_features' in pred_dict and 'target_text_features' in pred_dict:
             pred_feat = pred_dict['pred_visual_features']
@@ -242,31 +429,53 @@ class SALTTrackActor(BaseActor):
                 pred_text_similarity = pred_text_sim.mean()
                 gt_text_similarity = gt_text_sim.mean()
 
-                # WYP: 文本对齐损失 - 支持三种模式
-                if self.semantic_text_loss_type == 'direction':
+                pred_to_text = torch.nn.functional.normalize(text_feat - pred_feat, dim=-1)
+                gt_to_text = torch.nn.functional.normalize(text_feat - gt_feat, dim=-1)
+                direction_consistency = torch.nn.functional.cosine_similarity(pred_to_text, gt_to_text, dim=-1)
+                semantic_direction_loss = (1 - direction_consistency).mean()
+                semantic_direction_consistency = direction_consistency.mean()
+                semantic_distance_loss = (1 - pred_text_sim).mean()
+
+                if self.semantic_text_loss_type in ('contrast', 'direction_contrast', 'direction_contrast_hard'):
+                    sample_ids, sample_ids_are_global = self._build_temporal_sample_ids(
+                        pred_feat.size(0),
+                        gt_dict['search_anno'].shape[1],
+                        pred_feat.device,
+                        gt_dict.get('contrast_group_id', None),
+                    )
+                    semantic_contrast_loss = self._masked_contrastive_loss(
+                        pred_feat,
+                        text_feat,
+                        sample_ids,
+                        sample_ids_are_global,
+                    )
+                    semantic_text_loss = self.semantic_contrast_weight * semantic_contrast_loss
+                    if self.semantic_text_loss_type in ('direction_contrast', 'direction_contrast_hard'):
+                        semantic_text_loss = semantic_text_loss + self.semantic_direction_weight * semantic_direction_loss
+                    if self.semantic_text_loss_type == 'direction_contrast_hard' and self.semantic_hard_neg_weight > 0:
+                        semantic_hard_neg_loss = self._hard_visual_negative_loss(
+                            pred_dict.get('semantic_feature_map', None),
+                            pred_dict.get('score_map', None),
+                            pred_dict.get('size_map', None),
+                            pred_dict.get('offset_map', None),
+                            box_xywh_to_cxcywh(gt_bbox),
+                            text_feat,
+                        )
+                        semantic_text_loss = semantic_text_loss + self.semantic_hard_neg_weight * semantic_hard_neg_loss
+                elif self.semantic_text_loss_type == 'direction':
                     # 方向监督 - 防止特征坍塌
-                    pred_to_text = torch.nn.functional.normalize(text_feat - pred_feat, dim=-1)
-                    gt_to_text = torch.nn.functional.normalize(text_feat - gt_feat, dim=-1)
-                    direction_consistency = torch.nn.functional.cosine_similarity(pred_to_text, gt_to_text, dim=-1)
-                    semantic_text_loss = (1 - direction_consistency).mean()
+                    semantic_text_loss = semantic_direction_loss
                 elif self.semantic_text_loss_type == 'both':
                     # 组合监督 - 距离 + 方向
-                    # 距离损失：拉近 pred 和 text
-                    distance_loss = (1 - pred_text_sim).mean()
-                    # 方向损失：对齐 pred 和 gt 的改进方向
-                    pred_to_text = torch.nn.functional.normalize(text_feat - pred_feat, dim=-1)
-                    gt_to_text = torch.nn.functional.normalize(text_feat - gt_feat, dim=-1)
-                    direction_consistency = torch.nn.functional.cosine_similarity(pred_to_text, gt_to_text, dim=-1)
-                    direction_loss = (1 - direction_consistency).mean()
-                    # 加权组合
-                    semantic_text_loss = self.semantic_distance_weight * distance_loss + \
-                                       self.semantic_direction_weight * direction_loss
+                    semantic_text_loss = self.semantic_distance_weight * semantic_distance_loss + \
+                                       self.semantic_direction_weight * semantic_direction_loss
                 else:
                     # 距离监督（原始方法）- 直接拉近 pred 和 text
-                    semantic_text_loss = (1 - pred_text_sim).mean()
+                    semantic_text_loss = semantic_distance_loss
 
                 # 可靠性门控：如果 GT 比 pred 更接近文本，则增强监督
                 delta_text_sim = (gt_text_sim - pred_text_sim).detach()
+                delta_text_similarity = delta_text_sim.mean()
                 if self.semantic_gate_type == 'none':
                     # 完全不使用gate
                     semantic_gate_per_sample = torch.ones_like(delta_text_sim)
@@ -377,6 +586,12 @@ class SALTTrackActor(BaseActor):
                 status["semantic_gate"] = semantic_gate.item()
                 status["gt_text_similarity"] = gt_text_similarity.item()
                 status["pred_text_similarity"] = pred_text_similarity.item()
+                status["semantic_distance_loss"] = semantic_distance_loss.item()
+                status["semantic_direction_loss"] = semantic_direction_loss.item()
+                status["semantic_direction_consistency"] = semantic_direction_consistency.item()
+                status["semantic_contrast_loss"] = semantic_contrast_loss.item()
+                status["semantic_hard_neg_loss"] = semantic_hard_neg_loss.item()
+                status["delta_text_similarity"] = delta_text_similarity.item()
             if self.use_semantic_guided_lora:
                 status["Loss/lora_semantic_reg"] = lora_semantic_reg.item()
             if self.lora_type == 'routed':

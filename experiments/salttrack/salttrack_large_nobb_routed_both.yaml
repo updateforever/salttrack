@@ -1,0 +1,92 @@
+DATA:
+  MAX_SAMPLE_INTERVAL: 400
+  MEAN: [0.485, 0.456, 0.406]
+  STD: [0.229, 0.224, 0.225]
+  SEARCH:
+    CENTER_JITTER: 3.5
+    FACTOR: 4.0
+    SCALE_JITTER: 0.5
+    SIZE: 256
+    NUMBER: 4
+  TEMPLATE:
+    CENTER_JITTER: 0
+    FACTOR: 2.0
+    SCALE_JITTER: 0
+    SIZE: 128
+    NUMBER: 2
+  TRAIN:
+    DATASETS_NAME:
+      - LASOT
+      - VastTrack
+      - TNL2K_train
+      - OTB99_train
+    DATASETS_RATIO: [6, 6, 6, 1]
+    SAMPLE_PER_EPOCH: 25000
+
+MODEL:
+  PRETRAIN_FILE: "fast_itpn_large_1600e_1k.pt"
+  PRETRAINED_PATH: "/data/MODEL_WEIGHTS_PUBLIC/VLT_weights/ATCTrack-master/models/ATCTrack_l.pth.tar"
+  BACKBONE:
+    TYPE: itpn_large
+    STRIDE: 16
+  HEAD:
+    TYPE: CENTER
+    NUM_CHANNELS: 256
+  HIDDEN_DIM: 512
+  USE_SEMANTIC_ALIGN: true
+  LORA:
+    ENABLED: true
+    TYPE: routed
+    RANK: 8
+    EXPERT_RANK: 4
+    ALPHA: 16
+    DROPOUT: 0.0
+    # No backbone LoRA: keep the visual encoder frozen and adapt only language/fusion/head modules.
+    TARGET_MODULES: ["language_adjust", "vl_fusion", "visual_temporal_fusion", "confidence_pred"]
+    SEMANTIC_GUIDED: true
+    SEMANTIC_GUIDE_WEIGHT: 0.1
+    SEMANTIC_GUIDE_TYPE: suppress_unreliable
+    ROUTER_SUPERVISE_WEIGHT: 0.1
+
+TRAIN:
+  TYPE: peft_lora
+  FREEZE_TEXT_SIDE: true
+  BACKBONE_MULTIPLIER: 0.1
+  DROP_PATH_RATE: 0.1
+  BATCH_SIZE: 64
+  EPOCH: 80
+  GIOU_WEIGHT: 2.0
+  L1_WEIGHT: 5.0
+  GRAD_CLIP_NORM: 0.1
+  LR: 0.0001
+  LR_DROP_EPOCH: 60
+  NUM_WORKER: 4
+  OPTIMIZER: ADAMW
+  PRINT_INTERVAL: 10
+  SAVE_INTERVAL: 10
+  SCHEDULER:
+    TYPE: step
+    DECAY_RATE: 0.1
+  WEIGHT_DECAY: 0.0001
+  AMP: false
+  FIX_BN: true
+  SEMANTIC_WEIGHT_STAGE1: 0.2
+  SEMANTIC_WEIGHT_STAGE2: 0.05
+  SEMANTIC_STAGE1_RATIO: 0.4
+  SEMANTIC_VISUAL_WEIGHT: 1.0
+  SEMANTIC_TEXT_WEIGHT: 1.0
+  SEMANTIC_TEXT_LOSS_TYPE: both
+  SEMANTIC_DISTANCE_WEIGHT: 0.2
+  SEMANTIC_DIRECTION_WEIGHT: 0.8
+  SEMANTIC_GATE_TYPE: sigmoid
+  SEMANTIC_GATE_TAU: 0.05
+  SEMANTIC_GATE_FLOOR: 0.2
+
+TEST:
+  EPOCH: 80
+  SEARCH_FACTOR: 4.0
+  SEARCH_SIZE: 256
+  TEMPLATE_FACTOR: 2.0
+  TEMPLATE_SIZE: 128
+  WINDOW: true
+  NUM_TEMPLATES: 2
