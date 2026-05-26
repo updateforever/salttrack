@@ -1,5 +1,5 @@
 from . import BaseActor
-from lib.utils.box_ops import box_cxcywh_to_xyxy, box_xywh_to_xyxy, box_xyxy_to_cxcywh, box_cxcywh_to_xyxy, box_iou
+from lib.utils.box_ops import box_cxcywh_to_xyxy, box_xywh_to_xyxy, box_xywh_to_cxcywh, box_xyxy_to_cxcywh, box_iou
 import torch
 from lib.utils.heapmap_utils import generate_heatmap
 from lib.utils.ce_utils import generate_mask_cond, adjust_keep_rate,generate_bbox_mask
@@ -141,87 +141,190 @@ class SALTTrackActor(BaseActor):
 
     def _build_temporal_sample_ids(self, total_size: int, local_batch_size: int, device,
                                    group_ids=None):
-        """Return ids and whether they are globally comparable across GPUs.
+        """Return positive ids and ignore-group ids for contrastive masking.
 
         Training data is laid out as [search_step_0 batch, search_step_1 batch, ...].
-        Frames from the same original sample share the same language description and
-        must not be treated as negatives in the contrastive objective.
+        Different search frames expanded from the same training sample share the
+        same text, but they can capture different target states. For tracking,
+        forcing these temporal views to be mutual positives can over-smooth the
+        visual representation, so each visual/text pair is its own positive.
 
-        If dataset-level group ids are provided, they identify the original
-        dataset sequence. This additionally prevents samples drawn from the same
-        sequence, possibly on different GPUs, from being used as negatives.
+        Temporal siblings and dataset-level same-sequence samples are treated as
+        ignore entries in the denominator. This avoids false negatives without
+        forcing them to collapse into one positive cluster.
         """
-        if group_ids is not None:
-            group_ids = torch.as_tensor(group_ids, device=device, dtype=torch.long).reshape(-1)
-            if group_ids.numel() == local_batch_size and total_size % local_batch_size == 0:
-                return group_ids.repeat(total_size // local_batch_size), True
+        positive_ids = torch.arange(total_size, device=device)
+        ignore_group_ids = None
 
-        if local_batch_size <= 0 or total_size % local_batch_size != 0:
-            return torch.arange(total_size, device=device), False
-        return torch.arange(local_batch_size, device=device).repeat(total_size // local_batch_size), False
+        if local_batch_size > 0 and total_size % local_batch_size == 0:
+            temporal_ids = torch.arange(local_batch_size, device=device, dtype=torch.long) \
+                .repeat(total_size // local_batch_size)
+            ignore_columns = [temporal_ids]
+
+            if group_ids is not None:
+                group_ids = torch.as_tensor(group_ids, device=device, dtype=torch.long).reshape(-1)
+                if group_ids.numel() == local_batch_size:
+                    ignore_columns.append(group_ids.repeat(total_size // local_batch_size))
+
+            ignore_group_ids = torch.stack(ignore_columns, dim=1)
+        elif group_ids is not None:
+            group_ids = torch.as_tensor(group_ids, device=device, dtype=torch.long).reshape(-1)
+            if group_ids.numel() == total_size:
+                ignore_group_ids = group_ids[:, None]
+
+        return positive_ids, ignore_group_ids
+
+    @staticmethod
+    def _build_ignore_mask(local_ignore_group_ids: torch.Tensor,
+                           ignore_group_ids: torch.Tensor,
+                           pos_mask: torch.Tensor) -> torch.Tensor:
+        if local_ignore_group_ids is None or ignore_group_ids is None:
+            return None
+        if local_ignore_group_ids.dim() == 1:
+            local_ignore_group_ids = local_ignore_group_ids[:, None]
+        if ignore_group_ids.dim() == 1:
+            ignore_group_ids = ignore_group_ids[:, None]
+
+        valid_local = local_ignore_group_ids[:, None, :].ge(0)
+        valid_global = ignore_group_ids[None, :, :].ge(0)
+        same_group = local_ignore_group_ids[:, None, :].eq(ignore_group_ids[None, :, :])
+        return (same_group & valid_local & valid_global).any(dim=-1) & (~pos_mask)
 
     def _masked_contrastive_loss(self, visual_feat: torch.Tensor, text_feat: torch.Tensor,
-                                 sample_ids: torch.Tensor,
-                                 sample_ids_are_global: bool = False) -> torch.Tensor:
+                                 positive_ids: torch.Tensor,
+                                 ignore_group_ids: torch.Tensor = None,
+                                 return_stats: bool = False):
         """Global contrastive loss with configurable v2t or bidirectional mode.
 
-        sample_ids mark entries that should not be negatives against each other.
-        When ids come from dataset sequence ids, they are already globally unique
-        and must stay unchanged after DDP all_gather. When ids are local fallback
-        indices, we offset them by rank to avoid accidental cross-GPU matches.
+        positive_ids define true positives, e.g. different search frames expanded
+        from the same training sample. ignore_group_ids define false-negative
+        groups, e.g. other crops from the same tracking sequence. Same-group
+        entries are removed from the denominator unless they are true positives.
         """
         if visual_feat.size(0) <= 1:
-            return visual_feat.new_tensor(0.0)
+            loss = visual_feat.new_tensor(0.0)
+            return (loss, {}) if return_stats else loss
 
         visual_feat = torch.nn.functional.normalize(visual_feat, dim=-1)
         text_feat = torch.nn.functional.normalize(text_feat, dim=-1)
         local_visual_feat = visual_feat
         local_text_feat = text_feat
-        local_sample_ids = sample_ids
+        local_positive_ids = positive_ids
+        local_ignore_group_ids = ignore_group_ids
 
         if dist.is_available() and dist.is_initialized():
             world_size = dist.get_world_size()
             rank = dist.get_rank()
             visual_list = [torch.zeros_like(visual_feat) for _ in range(world_size)]
             text_list = [torch.zeros_like(text_feat) for _ in range(world_size)]
-            sample_id_list = [torch.zeros_like(sample_ids) for _ in range(world_size)]
+            positive_id_list = [torch.zeros_like(positive_ids) for _ in range(world_size)]
             dist.all_gather(visual_list, visual_feat.detach())
             dist.all_gather(text_list, text_feat.detach())
-            dist.all_gather(sample_id_list, sample_ids)
+            dist.all_gather(positive_id_list, positive_ids)
             visual_list[rank] = visual_feat
             text_list[rank] = text_feat
-            if sample_ids_are_global:
-                local_sample_ids = sample_ids
-            else:
-                global_batch = sample_ids.max().detach() + 1
-                sample_id_list = [
-                    sid + global_batch * device_rank
-                    for device_rank, sid in enumerate(sample_id_list)
-                ]
-                local_sample_ids = sample_ids + global_batch * rank
+
+            # positive_ids are local fallback ids, so offset by rank to avoid
+            # accidental cross-GPU positives at the same batch index.
+            positive_stride = positive_ids.max().detach() + 1
+            positive_id_list = [
+                sid + positive_stride * device_rank
+                for device_rank, sid in enumerate(positive_id_list)
+            ]
+            local_positive_ids = positive_ids + positive_stride * rank
+
+            ignore_group_id_list = None
+            if ignore_group_ids is not None:
+                ignore_group_id_list = [torch.zeros_like(ignore_group_ids) for _ in range(world_size)]
+                dist.all_gather(ignore_group_id_list, ignore_group_ids)
+                # Column 0 is local temporal-sibling id and must be rank-offset;
+                # later columns are dataset sequence ids and are globally comparable.
+                ignore_stride = ignore_group_ids[:, 0].max().detach() + 1
+                for device_rank, gathered_ids in enumerate(ignore_group_id_list):
+                    gathered_ids[:, 0] = gathered_ids[:, 0] + ignore_stride * device_rank
+                local_ignore_group_ids = ignore_group_ids.clone()
+                local_ignore_group_ids[:, 0] = local_ignore_group_ids[:, 0] + ignore_stride * rank
+
             visual_feat = torch.cat(visual_list, dim=0)
             text_feat = torch.cat(text_list, dim=0)
-            sample_ids = torch.cat(sample_id_list, dim=0)
+            positive_ids = torch.cat(positive_id_list, dim=0)
+            if ignore_group_id_list is not None:
+                ignore_group_ids = torch.cat(ignore_group_id_list, dim=0)
 
-        logits_v2t = torch.matmul(local_visual_feat, text_feat.t()) / max(float(self.semantic_contrast_tau), 1e-6)
-        pos_mask_v2t = local_sample_ids[:, None].eq(sample_ids[None, :]).float()
+        sim_v2t = torch.matmul(local_visual_feat, text_feat.t())
+        logits_v2t = sim_v2t / max(float(self.semantic_contrast_tau), 1e-6)
+        pos_mask_v2t = local_positive_ids[:, None].eq(positive_ids[None, :])
+        valid_neg_mask_v2t = ~pos_mask_v2t
+        ignore_mask_v2t = self._build_ignore_mask(local_ignore_group_ids, ignore_group_ids, pos_mask_v2t)
+        if ignore_mask_v2t is not None:
+            logits_v2t = logits_v2t.masked_fill(ignore_mask_v2t, float('-inf'))
+            valid_neg_mask_v2t = valid_neg_mask_v2t & (~ignore_mask_v2t)
+        pos_mask_v2t = pos_mask_v2t.float()
         pos_count_v2t = pos_mask_v2t.sum(dim=1).clamp(min=1.0)
 
         log_prob_v2t = logits_v2t - torch.logsumexp(logits_v2t, dim=1, keepdim=True)
-        loss_v2t = -((pos_mask_v2t * log_prob_v2t).sum(dim=1) / pos_count_v2t).mean()
-        if self.semantic_contrast_mode != 'bidirectional':
-            return loss_v2t
+        pos_log_prob_v2t = log_prob_v2t.masked_fill(pos_mask_v2t == 0, 0.0)
+        loss_v2t = -((pos_mask_v2t * pos_log_prob_v2t).sum(dim=1) / pos_count_v2t).mean()
 
-        logits_t2v = torch.matmul(local_text_feat, visual_feat.t()) / max(float(self.semantic_contrast_tau), 1e-6)
-        pos_mask_t2v = local_sample_ids[:, None].eq(sample_ids[None, :]).float()
+        # Monitor raw cosine similarities. The CE value can grow with batch size
+        # and temperature, while margins directly show whether positives separate
+        # from in-batch negatives.
+        pos_sim_v2t = (sim_v2t * pos_mask_v2t).sum(dim=1) / pos_count_v2t
+        valid_neg_count_v2t = valid_neg_mask_v2t.float().sum(dim=1).clamp(min=1.0)
+        neg_sim_mean_v2t = (sim_v2t.masked_fill(~valid_neg_mask_v2t, 0.0).sum(dim=1) / valid_neg_count_v2t).mean()
+        neg_sim_max_v2t = sim_v2t.masked_fill(~valid_neg_mask_v2t, float('-inf')).max(dim=1).values
+        neg_sim_max_v2t = torch.where(torch.isfinite(neg_sim_max_v2t), neg_sim_max_v2t, torch.zeros_like(neg_sim_max_v2t)).mean()
+        pos_sim_mean_v2t = pos_sim_v2t.mean()
+        if self.semantic_contrast_mode != 'bidirectional':
+            if not return_stats:
+                return loss_v2t
+            stats = {
+                'contrast_pos_sim': pos_sim_mean_v2t.detach(),
+                'contrast_neg_sim_mean': neg_sim_mean_v2t.detach(),
+                'contrast_neg_sim_max': neg_sim_max_v2t.detach(),
+                'contrast_margin': (pos_sim_mean_v2t - neg_sim_mean_v2t).detach(),
+                'contrast_hard_margin': (pos_sim_mean_v2t - neg_sim_max_v2t).detach(),
+            }
+            return loss_v2t, stats
+
+        sim_t2v = torch.matmul(local_text_feat, visual_feat.t())
+        logits_t2v = sim_t2v / max(float(self.semantic_contrast_tau), 1e-6)
+        pos_mask_t2v = local_positive_ids[:, None].eq(positive_ids[None, :])
+        valid_neg_mask_t2v = ~pos_mask_t2v
+        ignore_mask_t2v = self._build_ignore_mask(local_ignore_group_ids, ignore_group_ids, pos_mask_t2v)
+        if ignore_mask_t2v is not None:
+            logits_t2v = logits_t2v.masked_fill(ignore_mask_t2v, float('-inf'))
+            valid_neg_mask_t2v = valid_neg_mask_t2v & (~ignore_mask_t2v)
+        pos_mask_t2v = pos_mask_t2v.float()
         pos_count_t2v = pos_mask_t2v.sum(dim=1).clamp(min=1.0)
         log_prob_t2v = logits_t2v - torch.logsumexp(logits_t2v, dim=1, keepdim=True)
-        loss_t2v = -((pos_mask_t2v * log_prob_t2v).sum(dim=1) / pos_count_t2v).mean()
-        return 0.5 * (loss_v2t + loss_t2v)
+        pos_log_prob_t2v = log_prob_t2v.masked_fill(pos_mask_t2v == 0, 0.0)
+        loss_t2v = -((pos_mask_t2v * pos_log_prob_t2v).sum(dim=1) / pos_count_t2v).mean()
+        loss = 0.5 * (loss_v2t + loss_t2v)
+        if not return_stats:
+            return loss
+
+        pos_sim_t2v = (sim_t2v * pos_mask_t2v).sum(dim=1) / pos_count_t2v
+        valid_neg_count_t2v = valid_neg_mask_t2v.float().sum(dim=1).clamp(min=1.0)
+        neg_sim_mean_t2v = (sim_t2v.masked_fill(~valid_neg_mask_t2v, 0.0).sum(dim=1) / valid_neg_count_t2v).mean()
+        neg_sim_max_t2v = sim_t2v.masked_fill(~valid_neg_mask_t2v, float('-inf')).max(dim=1).values
+        neg_sim_max_t2v = torch.where(torch.isfinite(neg_sim_max_t2v), neg_sim_max_t2v, torch.zeros_like(neg_sim_max_t2v)).mean()
+        pos_sim_mean = 0.5 * (pos_sim_mean_v2t + pos_sim_t2v.mean())
+        neg_sim_mean = 0.5 * (neg_sim_mean_v2t + neg_sim_mean_t2v)
+        neg_sim_max = 0.5 * (neg_sim_max_v2t + neg_sim_max_t2v)
+        stats = {
+            'contrast_pos_sim': pos_sim_mean.detach(),
+            'contrast_neg_sim_mean': neg_sim_mean.detach(),
+            'contrast_neg_sim_max': neg_sim_max.detach(),
+            'contrast_margin': (pos_sim_mean - neg_sim_mean).detach(),
+            'contrast_hard_margin': (pos_sim_mean - neg_sim_max).detach(),
+        }
+        return loss, stats
 
     def _hard_visual_negative_loss(self, feature_map: torch.Tensor, score_map: torch.Tensor,
                                    size_map: torch.Tensor, offset_map: torch.Tensor,
-                                   gt_bbox_xywh: torch.Tensor, text_feat: torch.Tensor) -> torch.Tensor:
+                                   gt_bbox_xywh: torch.Tensor, text_feat: torch.Tensor,
+                                   return_stats: bool = False):
         """Use high-confidence non-target proposals as text-conditioned hard visual negatives.
 
         score_map is the tracker's center confidence map. High responses away from
@@ -243,13 +346,16 @@ class SALTTrackActor(BaseActor):
             ref_tensor = ref_tensor if ref_tensor is not None else offset_map
             ref_tensor = ref_tensor if ref_tensor is not None else gt_bbox_xywh
             ref_tensor = ref_tensor if ref_tensor is not None else text_feat
-            return ref_tensor.new_tensor(0.0)
+            loss = ref_tensor.new_tensor(0.0)
+            return (loss, {}) if return_stats else loss
         if feature_map.dim() != 4 or score_map.dim() != 4 or size_map.dim() != 4 or offset_map.dim() != 4:
-            return text_feat.new_tensor(0.0)
+            loss = text_feat.new_tensor(0.0)
+            return (loss, {}) if return_stats else loss
 
         n, c, h, w = feature_map.shape
         if n == 0 or score_map.shape[0] != n or size_map.shape[0] != n or offset_map.shape[0] != n:
-            return feature_map.new_tensor(0.0)
+            loss = feature_map.new_tensor(0.0)
+            return (loss, {}) if return_stats else loss
 
         # 1. Pick top-k high-confidence center locations from the score map.
         #    We detach the score map for selection so the loss does not optimize by
@@ -257,7 +363,8 @@ class SALTTrackActor(BaseActor):
         score_flat = score_map[:, 0].reshape(n, -1)
         topk = min(int(self.semantic_hard_neg_topk), score_flat.size(1))
         if topk <= 0:
-            return feature_map.new_tensor(0.0)
+            loss = feature_map.new_tensor(0.0)
+            return (loss, {}) if return_stats else loss
 
         _, topk_idx = torch.topk(score_flat.detach(), k=topk, dim=1)
         y = torch.div(topk_idx, w, rounding_mode='floor')
@@ -309,7 +416,18 @@ class SALTTrackActor(BaseActor):
 
         margin = float(self.semantic_hard_neg_margin)
         hard_loss = torch.nn.functional.relu(margin - pos_sim + neg_sim) * neg_weight
-        return hard_loss.sum() / neg_weight.sum().clamp(min=1.0)
+        loss = hard_loss.sum() / neg_weight.sum().clamp(min=1.0)
+        if not return_stats:
+            return loss
+
+        stats = {
+            'hard_pos_sim': pos_sim.mean().detach(),
+            'hard_neg_sim_mean': neg_sim.mean().detach(),
+            'hard_neg_sim_max': neg_sim.max(dim=1).values.mean().detach(),
+            'hard_margin': (pos_sim.squeeze(-1) - neg_sim.max(dim=1).values).mean().detach(),
+            'hard_neg_weight_mean': neg_weight.mean().detach(),
+        }
+        return loss, stats
 
     def forward_pass(self, data):
         # assert len(data['template_images']) == 1
@@ -412,6 +530,8 @@ class SALTTrackActor(BaseActor):
         semantic_direction_consistency = torch.tensor(0.0, device=l1_loss.device)
         semantic_contrast_loss = torch.tensor(0.0, device=l1_loss.device)
         semantic_hard_neg_loss = torch.tensor(0.0, device=l1_loss.device)
+        semantic_contrast_stats = {}
+        semantic_hard_neg_stats = {}
         delta_text_similarity = torch.tensor(0.0, device=l1_loss.device)
 
         if self.use_semantic_align and 'pred_visual_features' in pred_dict and 'gt_visual_features' in pred_dict and 'target_text_features' in pred_dict:
@@ -437,29 +557,31 @@ class SALTTrackActor(BaseActor):
                 semantic_distance_loss = (1 - pred_text_sim).mean()
 
                 if self.semantic_text_loss_type in ('contrast', 'direction_contrast', 'direction_contrast_hard'):
-                    sample_ids, sample_ids_are_global = self._build_temporal_sample_ids(
+                    positive_ids, ignore_group_ids = self._build_temporal_sample_ids(
                         pred_feat.size(0),
                         gt_dict['search_anno'].shape[1],
                         pred_feat.device,
                         gt_dict.get('contrast_group_id', None),
                     )
-                    semantic_contrast_loss = self._masked_contrastive_loss(
+                    semantic_contrast_loss, semantic_contrast_stats = self._masked_contrastive_loss(
                         pred_feat,
                         text_feat,
-                        sample_ids,
-                        sample_ids_are_global,
+                        positive_ids,
+                        ignore_group_ids,
+                        return_stats=True,
                     )
                     semantic_text_loss = self.semantic_contrast_weight * semantic_contrast_loss
                     if self.semantic_text_loss_type in ('direction_contrast', 'direction_contrast_hard'):
                         semantic_text_loss = semantic_text_loss + self.semantic_direction_weight * semantic_direction_loss
                     if self.semantic_text_loss_type == 'direction_contrast_hard' and self.semantic_hard_neg_weight > 0:
-                        semantic_hard_neg_loss = self._hard_visual_negative_loss(
+                        semantic_hard_neg_loss, semantic_hard_neg_stats = self._hard_visual_negative_loss(
                             pred_dict.get('semantic_feature_map', None),
                             pred_dict.get('score_map', None),
                             pred_dict.get('size_map', None),
                             pred_dict.get('offset_map', None),
                             box_xywh_to_cxcywh(gt_bbox),
                             text_feat,
+                            return_stats=True,
                         )
                         semantic_text_loss = semantic_text_loss + self.semantic_hard_neg_weight * semantic_hard_neg_loss
                 elif self.semantic_text_loss_type == 'direction':
@@ -591,6 +713,10 @@ class SALTTrackActor(BaseActor):
                 status["semantic_direction_consistency"] = semantic_direction_consistency.item()
                 status["semantic_contrast_loss"] = semantic_contrast_loss.item()
                 status["semantic_hard_neg_loss"] = semantic_hard_neg_loss.item()
+                for stat_name, stat_value in semantic_contrast_stats.items():
+                    status[f"semantic_{stat_name}"] = stat_value.item()
+                for stat_name, stat_value in semantic_hard_neg_stats.items():
+                    status[f"semantic_{stat_name}"] = stat_value.item()
                 status["delta_text_similarity"] = delta_text_similarity.item()
             if self.use_semantic_guided_lora:
                 status["Loss/lora_semantic_reg"] = lora_semantic_reg.item()

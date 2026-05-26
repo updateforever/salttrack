@@ -202,8 +202,16 @@ def plot_sequence_curves(seq_dir, seq_name, rows):
     frames = [int(r["frame"]) for r in rows]
     ours_iou = [float(r["ours_iou"]) for r in rows]
     base_iou = [float(r["baseline_iou"]) for r in rows]
+    ours_pred_text = [float(r["ours_pred_text_cos"]) for r in rows]
+    base_pred_text = [float(r["baseline_pred_text_cos"]) for r in rows]
+    ours_gt_text = [float(r["ours_gt_text_cos"]) for r in rows]
+    base_gt_text = [float(r["baseline_gt_text_cos"]) for r in rows]
     ours_direction = [float(r["ours_direction_consistency"]) for r in rows]
     base_direction = [float(r["baseline_direction_consistency"]) for r in rows]
+    ours_direction_gap = [1.0 - v for v in ours_direction]
+    base_direction_gap = [1.0 - v for v in base_direction]
+    ours_text_distance = [1.0 - v for v in ours_pred_text]
+    base_text_distance = [1.0 - v for v in base_pred_text]
     ours_gate = [float(r["ours_semantic_gate"]) for r in rows]
     base_gate = [float(r["baseline_semantic_gate"]) for r in rows]
 
@@ -234,6 +242,47 @@ def plot_sequence_curves(seq_dir, seq_name, rows):
     plt.close()
 
     plt.figure(figsize=(9, 4.2))
+    plt.plot(frames, ours_direction_gap, label="SALTTrack direction distance", color="#d64f4f", linewidth=1.8)
+    plt.plot(frames, base_direction_gap, label="ATCTrack direction distance", color="#3f66c2", linewidth=1.5)
+    plt.ylim(0, 2)
+    plt.xlabel("frame")
+    plt.ylabel("1 - direction consistency")
+    plt.title(seq_name)
+    plt.grid(alpha=0.25)
+    plt.legend(frameon=False)
+    plt.tight_layout()
+    plt.savefig(seq_dir / "direction_distance_curve.png", dpi=220)
+    plt.close()
+
+    plt.figure(figsize=(9, 4.2))
+    plt.plot(frames, ours_pred_text, label="SALTTrack pred-text", color="#d64f4f", linewidth=1.8)
+    plt.plot(frames, ours_gt_text, label="SALTTrack gt-text", color="#d64f4f", linewidth=1.2, linestyle="--")
+    plt.plot(frames, base_pred_text, label="ATCTrack pred-text", color="#3f66c2", linewidth=1.5)
+    plt.plot(frames, base_gt_text, label="ATCTrack gt-text", color="#3f66c2", linewidth=1.1, linestyle="--")
+    plt.ylim(-1, 1)
+    plt.xlabel("frame")
+    plt.ylabel("text-visual cosine similarity")
+    plt.title(seq_name)
+    plt.grid(alpha=0.25)
+    plt.legend(frameon=False, ncol=2)
+    plt.tight_layout()
+    plt.savefig(seq_dir / "text_similarity_curve.png", dpi=220)
+    plt.close()
+
+    plt.figure(figsize=(9, 4.2))
+    plt.plot(frames, ours_text_distance, label="SALTTrack text distance", color="#d64f4f", linewidth=1.8)
+    plt.plot(frames, base_text_distance, label="ATCTrack text distance", color="#3f66c2", linewidth=1.5)
+    plt.ylim(0, 2)
+    plt.xlabel("frame")
+    plt.ylabel("1 - pred-text cosine")
+    plt.title(seq_name)
+    plt.grid(alpha=0.25)
+    plt.legend(frameon=False)
+    plt.tight_layout()
+    plt.savefig(seq_dir / "text_distance_curve.png", dpi=220)
+    plt.close()
+
+    plt.figure(figsize=(9, 4.2))
     plt.plot(frames, ours_gate, label="SALTTrack semantic gate", color="#d64f4f", linewidth=1.8)
     plt.plot(frames, base_gate, label="ATCTrack semantic gate", color="#3f66c2", linewidth=1.5)
     plt.ylim(0, 1)
@@ -244,6 +293,33 @@ def plot_sequence_curves(seq_dir, seq_name, rows):
     plt.legend(frameon=False)
     plt.tight_layout()
     plt.savefig(seq_dir / "semantic_gate_curve.png", dpi=220)
+    plt.close()
+
+
+def plot_direction_alignment_summary(seq_dir, seq_name, rows):
+    ours_direction = np.asarray([float(r["ours_direction_consistency"]) for r in rows], dtype=np.float64)
+    base_direction = np.asarray([float(r["baseline_direction_consistency"]) for r in rows], dtype=np.float64)
+    ours_text_distance = np.asarray([1.0 - float(r["ours_pred_text_cos"]) for r in rows], dtype=np.float64)
+    base_text_distance = np.asarray([1.0 - float(r["baseline_pred_text_cos"]) for r in rows], dtype=np.float64)
+    ours_iou = np.asarray([float(r["ours_iou"]) for r in rows], dtype=np.float64)
+    base_iou = np.asarray([float(r["baseline_iou"]) for r in rows], dtype=np.float64)
+
+    labels = ["Direction", "Text distance", "IoU"]
+    ours_values = [np.nanmean(ours_direction), np.nanmean(ours_text_distance), np.nanmean(ours_iou)]
+    base_values = [np.nanmean(base_direction), np.nanmean(base_text_distance), np.nanmean(base_iou)]
+
+    x = np.arange(len(labels))
+    width = 0.34
+    plt.figure(figsize=(7.2, 4.2))
+    plt.bar(x - width / 2, ours_values, width, label="SALTTrack", color="#d64f4f")
+    plt.bar(x + width / 2, base_values, width, label="ATCTrack", color="#3f66c2")
+    plt.xticks(x, labels)
+    plt.ylabel("mean value")
+    plt.title(seq_name)
+    plt.grid(axis="y", alpha=0.25)
+    plt.legend(frameon=False)
+    plt.tight_layout()
+    plt.savefig(seq_dir / "semantic_alignment_summary.png", dpi=220)
     plt.close()
 
 
@@ -358,6 +434,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows)
         plot_sequence_curves(seq_dir, seq_name, rows[1:])
+        plot_direction_alignment_summary(seq_dir, seq_name, rows[1:])
         summary_rows.append({
             "sequence": seq_name,
             "frames": len(rows),

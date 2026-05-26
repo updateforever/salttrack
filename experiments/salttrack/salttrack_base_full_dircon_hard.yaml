@@ -24,10 +24,10 @@ DATA:
     SAMPLE_PER_EPOCH: 25000
 
 MODEL:
-  PRETRAIN_FILE: "fast_itpn_large_1600e_1k.pt"
-  PRETRAINED_PATH: "/data/MODEL_WEIGHTS_PUBLIC/VLT_weights/ATCTrack-master/models/ATCTrack_l.pth.tar"
+  PRETRAIN_FILE: "fast_itpn_base_clipl_e1600.pt"
+  PRETRAINED_PATH: "/data/MODEL_WEIGHTS_PUBLIC/VLT_weights/ATCTrack-master/models/ATCTrack_b.pth.tar"
   BACKBONE:
-    TYPE: itpn_large
+    TYPE: itpn_base
     STRIDE: 16
   HEAD:
     TYPE: CENTER
@@ -35,25 +35,24 @@ MODEL:
   HIDDEN_DIM: 512
   USE_SEMANTIC_ALIGN: true
   LORA:
-    ENABLED: true
+    ENABLED: false
     TYPE: routed
     RANK: 8
     EXPERT_RANK: 4
     ALPHA: 16
     DROPOUT: 0.0
-    # No backbone LoRA: keep the visual encoder frozen and adapt only language/fusion/head modules.
     TARGET_MODULES: ["language_adjust", "vl_fusion", "visual_temporal_fusion", "confidence_pred"]
-    SEMANTIC_GUIDED: true
-    SEMANTIC_GUIDE_WEIGHT: 0.1
+    SEMANTIC_GUIDED: false
+    SEMANTIC_GUIDE_WEIGHT: 0.0
     SEMANTIC_GUIDE_TYPE: suppress_unreliable
-    ROUTER_SUPERVISE_WEIGHT: 0.1
+    ROUTER_SUPERVISE_WEIGHT: 0.0
 
 TRAIN:
-  TYPE: peft_lora
+  TYPE: full
   FREEZE_TEXT_SIDE: true
   BACKBONE_MULTIPLIER: 0.1
   DROP_PATH_RATE: 0.1
-  BATCH_SIZE: 64
+  BATCH_SIZE: 6
   EPOCH: 80
   GIOU_WEIGHT: 2.0
   L1_WEIGHT: 5.0
